@@ -7,11 +7,11 @@ final class FeedbackFormViewController: NSViewController {
     private let config: StorePalConfiguration
     private let store: ConversationStore
 
-    private let stackView = NSStackView()
+    // Form views
+    private let formStack = NSStackView()
     private let categoryPopup = NSPopUpButton()
     private let nameField = NSTextField()
     private let emailField = NSTextField()
-    private let changeIdentityButton = NSButton(title: "Change", target: nil, action: nil)
     private let messageScrollView = NSScrollView()
     private let messageTextView = NSTextView()
     private let placeholderLabel = NSTextField(labelWithString: "Describe your feedback...")
@@ -20,8 +20,8 @@ final class FeedbackFormViewController: NSViewController {
     private let statusLabel = NSTextField(labelWithString: "")
     private let spinner = NSProgressIndicator()
 
-    /// Whether the name/email fields are currently locked (user previously submitted)
-    private var identityLocked = false
+    // Success views
+    private let successContainer = NSView()
 
     init(apiClient: APIClient, config: StorePalConfiguration, store: ConversationStore) {
         self.apiClient = apiClient
@@ -36,69 +36,61 @@ final class FeedbackFormViewController: NSViewController {
     override func loadView() {
         let root = NSView()
 
-        stackView.orientation = .vertical
-        stackView.spacing = 10
-        stackView.alignment = .leading
-        stackView.edgeInsets = NSEdgeInsets(top: 16, left: 20, bottom: 20, right: 20)
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        root.addSubview(stackView)
+        setupForm(in: root)
+        setupSuccessView(in: root)
+        successContainer.isHidden = true
+
+        self.view = root
+        loadIdentity()
+    }
+
+    // MARK: - Form setup
+
+    private func setupForm(in root: NSView) {
+        formStack.orientation = .vertical
+        formStack.spacing = 10
+        formStack.alignment = .leading
+        formStack.edgeInsets = NSEdgeInsets(top: 16, left: 20, bottom: 20, right: 20)
+        formStack.translatesAutoresizingMaskIntoConstraints = false
+        root.addSubview(formStack)
 
         NSLayoutConstraint.activate([
-            stackView.topAnchor.constraint(equalTo: root.topAnchor),
-            stackView.leadingAnchor.constraint(equalTo: root.leadingAnchor),
-            stackView.trailingAnchor.constraint(equalTo: root.trailingAnchor),
+            formStack.topAnchor.constraint(equalTo: root.topAnchor),
+            formStack.leadingAnchor.constraint(equalTo: root.leadingAnchor),
+            formStack.trailingAnchor.constraint(equalTo: root.trailingAnchor),
         ])
 
         // Category
-        addLabel("Category")
+        addLabel("Category", to: formStack)
         for cat in FeedbackCategory.allCases {
             categoryPopup.addItem(withTitle: cat.displayName)
         }
-        stackView.addArrangedSubview(categoryPopup)
+        formStack.addArrangedSubview(categoryPopup)
 
         // Name
-        addLabel("Name")
+        addLabel("Name", to: formStack)
         nameField.placeholderString = "Your name"
         nameField.font = .systemFont(ofSize: 13)
-        stackView.addArrangedSubview(nameField)
+        formStack.addArrangedSubview(nameField)
 
-        // Email + Change button row
-        let emailLabelRow = NSStackView()
-        emailLabelRow.orientation = .horizontal
-        emailLabelRow.spacing = 4
-        let emailLabel = NSTextField(labelWithString: "Email")
-        emailLabel.font = .systemFont(ofSize: 12, weight: .medium)
-        emailLabel.textColor = .secondaryLabelColor
-        emailLabelRow.addArrangedSubview(emailLabel)
-
-        changeIdentityButton.bezelStyle = .rounded
-        changeIdentityButton.controlSize = .mini
-        changeIdentityButton.font = .systemFont(ofSize: 10)
-        changeIdentityButton.target = self
-        changeIdentityButton.action = #selector(changeIdentityTapped)
-        changeIdentityButton.isHidden = true
-        emailLabelRow.addArrangedSubview(changeIdentityButton)
-
-        stackView.addArrangedSubview(emailLabelRow)
-
+        // Email
+        addLabel("Email", to: formStack)
         emailField.placeholderString = "your@email.com"
         emailField.font = .systemFont(ofSize: 13)
-        stackView.addArrangedSubview(emailField)
+        formStack.addArrangedSubview(emailField)
 
         // Message
-        addLabel("Message")
-
+        addLabel("Message", to: formStack)
         messageTextView.isRichText = false
         messageTextView.font = .systemFont(ofSize: 13)
         messageTextView.textContainerInset = NSSize(width: 6, height: 6)
         messageTextView.isAutomaticQuoteSubstitutionEnabled = false
         messageTextView.isAutomaticDashSubstitutionEnabled = false
         messageTextView.delegate = self
-
         messageScrollView.documentView = messageTextView
         messageScrollView.hasVerticalScroller = true
         messageScrollView.borderType = .bezelBorder
-        stackView.addArrangedSubview(messageScrollView)
+        formStack.addArrangedSubview(messageScrollView)
 
         // Placeholder
         placeholderLabel.textColor = .placeholderTextColor
@@ -122,7 +114,7 @@ final class FeedbackFormViewController: NSViewController {
         metadataLabel.stringValue = metaString
         metadataLabel.font = .systemFont(ofSize: 10)
         metadataLabel.textColor = .tertiaryLabelColor
-        stackView.addArrangedSubview(metadataLabel)
+        formStack.addArrangedSubview(metadataLabel)
 
         // Submit row
         let submitRow = NSStackView()
@@ -146,93 +138,96 @@ final class FeedbackFormViewController: NSViewController {
         statusLabel.isHidden = true
         submitRow.addArrangedSubview(statusLabel)
 
-        stackView.addArrangedSubview(submitRow)
+        formStack.addArrangedSubview(submitRow)
 
         // Width constraints
         for field in [categoryPopup, nameField, emailField, messageScrollView, submitRow] as [NSView] {
             field.translatesAutoresizingMaskIntoConstraints = false
-            field.widthAnchor.constraint(equalTo: stackView.widthAnchor, constant: -40).isActive = true
+            field.widthAnchor.constraint(equalTo: formStack.widthAnchor, constant: -40).isActive = true
         }
-        emailLabelRow.translatesAutoresizingMaskIntoConstraints = false
-
         messageScrollView.heightAnchor.constraint(greaterThanOrEqualToConstant: 120).isActive = true
-
-        self.view = root
-
-        // Populate from saved identity or config
-        loadIdentity()
     }
 
-    // MARK: - Identity management
+    // MARK: - Success view
+
+    private func setupSuccessView(in root: NSView) {
+        successContainer.translatesAutoresizingMaskIntoConstraints = false
+        root.addSubview(successContainer)
+
+        NSLayoutConstraint.activate([
+            successContainer.topAnchor.constraint(equalTo: root.topAnchor),
+            successContainer.leadingAnchor.constraint(equalTo: root.leadingAnchor),
+            successContainer.trailingAnchor.constraint(equalTo: root.trailingAnchor),
+            successContainer.bottomAnchor.constraint(equalTo: root.bottomAnchor),
+        ])
+
+        let stack = NSStackView()
+        stack.orientation = .vertical
+        stack.spacing = 12
+        stack.alignment = .centerX
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        successContainer.addSubview(stack)
+
+        NSLayoutConstraint.activate([
+            stack.centerXAnchor.constraint(equalTo: successContainer.centerXAnchor),
+            stack.centerYAnchor.constraint(equalTo: successContainer.centerYAnchor, constant: -20),
+            stack.widthAnchor.constraint(lessThanOrEqualTo: successContainer.widthAnchor, constant: -60),
+        ])
+
+        // Checkmark icon
+        let checkImage = NSImageView()
+        if let symbol = NSImage(systemSymbolName: "checkmark.circle.fill", accessibilityDescription: "Success") {
+            let config = NSImage.SymbolConfiguration(pointSize: 48, weight: .light)
+            checkImage.image = symbol.withSymbolConfiguration(config)
+            checkImage.contentTintColor = .systemGreen
+        }
+        stack.addArrangedSubview(checkImage)
+
+        // Title
+        let title = NSTextField(labelWithString: "Thank you!")
+        title.font = .systemFont(ofSize: 20, weight: .semibold)
+        title.textColor = .labelColor
+        title.alignment = .center
+        stack.addArrangedSubview(title)
+
+        // Subtitle
+        let subtitle = NSTextField(wrappingLabelWithString: "Your feedback has been received. We'll review it and get back to you if needed.")
+        subtitle.font = .systemFont(ofSize: 13)
+        subtitle.textColor = .secondaryLabelColor
+        subtitle.alignment = .center
+        stack.addArrangedSubview(subtitle)
+
+        // Spacer
+        let spacer = NSView()
+        spacer.translatesAutoresizingMaskIntoConstraints = false
+        spacer.heightAnchor.constraint(equalToConstant: 8).isActive = true
+        stack.addArrangedSubview(spacer)
+
+        // "Send Another" button
+        let anotherButton = NSButton(title: "Send Another", target: self, action: #selector(sendAnotherTapped))
+        anotherButton.bezelStyle = .rounded
+        anotherButton.controlSize = .large
+        stack.addArrangedSubview(anotherButton)
+
+        // "Close" button
+        let closeButton = NSButton(title: "Close", target: self, action: #selector(closeTapped))
+        closeButton.bezelStyle = .rounded
+        closeButton.controlSize = .regular
+        stack.addArrangedSubview(closeButton)
+    }
+
+    // MARK: - Identity
 
     private func loadIdentity() {
-        let name = store.resolveName(configName: config.userName) ?? ""
-        let email = store.resolveEmail(configEmail: config.userEmail) ?? ""
-
-        nameField.stringValue = name
-        emailField.stringValue = email
-
-        // Lock if we have a saved identity (user has submitted before)
-        if store.savedEmail != nil {
-            lockIdentity()
-        }
+        nameField.stringValue = store.resolveName(configName: config.userName) ?? ""
+        emailField.stringValue = store.resolveEmail(configEmail: config.userEmail) ?? ""
     }
 
-    private func lockIdentity() {
-        identityLocked = true
-        nameField.isEditable = false
-        nameField.isSelectable = false
-        nameField.drawsBackground = false
-        nameField.isBezeled = false
-        nameField.textColor = .labelColor
-
-        emailField.isEditable = false
-        emailField.isSelectable = false
-        emailField.drawsBackground = false
-        emailField.isBezeled = false
-        emailField.textColor = .labelColor
-
-        changeIdentityButton.isHidden = false
-    }
-
-    private func unlockIdentity() {
-        identityLocked = false
-        nameField.isEditable = true
-        nameField.isSelectable = true
-        nameField.drawsBackground = true
-        nameField.isBezeled = true
-        nameField.textColor = .controlTextColor
-
-        emailField.isEditable = true
-        emailField.isSelectable = true
-        emailField.drawsBackground = true
-        emailField.isBezeled = true
-        emailField.textColor = .controlTextColor
-
-        changeIdentityButton.isHidden = true
-    }
-
-    @objc private func changeIdentityTapped() {
-        let alert = NSAlert()
-        alert.messageText = "Change your identity?"
-        alert.informativeText = "If you change your email, you won't be able to see your previous feedback history."
-        alert.alertStyle = .warning
-        alert.addButton(withTitle: "Change")
-        alert.addButton(withTitle: "Cancel")
-
-        if alert.runModal() == .alertFirstButtonReturn {
-            store.savedEmail = nil
-            store.savedName = nil
-            store.clearTokens()
-            unlockIdentity()
-        }
-    }
-
-    private func addLabel(_ text: String) {
+    private func addLabel(_ text: String, to stack: NSStackView) {
         let label = NSTextField(labelWithString: text)
         label.font = .systemFont(ofSize: 12, weight: .medium)
         label.textColor = .secondaryLabelColor
-        stackView.addArrangedSubview(label)
+        stack.addArrangedSubview(label)
     }
 
     // MARK: - Submit
@@ -268,19 +263,13 @@ final class FeedbackFormViewController: NSViewController {
                     email: email,
                     metadata: metadata
                 )
-                // Save identity and token
                 store.savedName = name
                 store.savedEmail = email
                 store.saveToken(result.conversationToken)
 
                 spinner.stopAnimation(nil)
                 spinner.isHidden = true
-                showStatus("Feedback sent!", isError: false)
-                messageTextView.string = ""
-                updatePlaceholder()
-                lockIdentity()
-                setFormEnabled(true)
-                // Token saved, identity persisted — ready for future reference
+                showSuccessView()
             } catch {
                 spinner.stopAnimation(nil)
                 spinner.isHidden = true
@@ -294,12 +283,32 @@ final class FeedbackFormViewController: NSViewController {
         }
     }
 
+    // MARK: - Success / Reset
+
+    private func showSuccessView() {
+        formStack.isHidden = true
+        successContainer.isHidden = false
+    }
+
+    @objc private func sendAnotherTapped() {
+        messageTextView.string = ""
+        updatePlaceholder()
+        statusLabel.isHidden = true
+        setFormEnabled(true)
+        successContainer.isHidden = true
+        formStack.isHidden = false
+    }
+
+    @objc private func closeTapped() {
+        view.window?.close()
+    }
+
+    // MARK: - Helpers
+
     private func setFormEnabled(_ enabled: Bool) {
         categoryPopup.isEnabled = enabled
-        if !identityLocked {
-            nameField.isEnabled = enabled
-            emailField.isEnabled = enabled
-        }
+        nameField.isEnabled = enabled
+        emailField.isEnabled = enabled
         messageTextView.isEditable = enabled
         submitButton.isEnabled = enabled
     }

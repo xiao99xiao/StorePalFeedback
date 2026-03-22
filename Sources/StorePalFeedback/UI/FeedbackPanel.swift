@@ -4,7 +4,7 @@ import AppKit
 final class FeedbackPanel: NSPanel {
     init() {
         super.init(
-            contentRect: NSRect(x: 0, y: 0, width: 480, height: 580),
+            contentRect: NSRect(x: 0, y: 0, width: 480, height: 520),
             styleMask: [.titled, .closable, .resizable],
             backing: .buffered,
             defer: false
@@ -21,7 +21,7 @@ final class FeedbackPanel: NSPanel {
         minSize = NSSize(width: 420, height: 520)
         maxSize = NSSize(width: 600, height: 800)
 
-        setContentSize(NSSize(width: 480, height: 580))
+        setContentSize(NSSize(width: 480, height: 520))
         center()
     }
 }

@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "StorePalFeedback",
-    platforms: [.macOS(.v15)],
+    platforms: [.macOS(.v13)],
     products: [
         .library(name: "StorePalFeedback", targets: ["StorePalFeedback"]),
         .library(name: "StorePalSwiftUI", targets: ["StorePalSwiftUI"]),

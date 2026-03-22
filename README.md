@@ -143,7 +143,7 @@ The floating panel has two tabs:
 
 ## Requirements
 
-- macOS 15+
+- macOS 13+
 - Swift 6.0+
 - StorePal Pro plan (for API key)
 

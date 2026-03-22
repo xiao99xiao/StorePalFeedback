@@ -1,0 +1,460 @@
+{
+  "builtTestProducts" : [
+
+  ],
+  "copyCommands" : {
+
+  },
+  "explicitTargetDependencyImportCheckingMode" : {
+    "none" : {
+
+    }
+  },
+  "generatedSourceTargetSet" : [
+
+  ],
+  "pluginDescriptions" : [
+
+  ],
+  "swiftCommands" : {
+    "C.StorePalFeedback-arm64-apple-macosx26.0-debug.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/sources",
+      "importPath" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/API/APIClient.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/API/APIError.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/API/APIModels.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/Configuration.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/Metadata/DeviceMetadata.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/Storage/ConversationStore.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/StorePalFeedback.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/ConversationDetailViewController.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/ConversationsListViewController.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/FeedbackFormViewController.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/FeedbackPanel.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/FeedbackTabViewController.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/FeedbackWindowController.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/Views/CategoryTagView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/Views/MessageBubbleView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/Views/UnreadBadgeView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/sources"
+        }
+      ],
+      "isLibrary" : true,
+      "moduleName" : "StorePalFeedback",
+      "moduleOutputPath" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/Modules/StorePalFeedback.swiftmodule",
+      "objects" : [
+        "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/APIClient.swift.o",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/APIError.swift.o",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/APIModels.swift.o",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/Configuration.swift.o",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/DeviceMetadata.swift.o",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/ConversationStore.swift.o",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/StorePalFeedback.swift.o",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/ConversationDetailViewController.swift.o",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/ConversationsListViewController.swift.o",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/FeedbackFormViewController.swift.o",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/FeedbackPanel.swift.o",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/FeedbackTabViewController.swift.o",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/FeedbackWindowController.swift.o",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/CategoryTagView.swift.o",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/MessageBubbleView.swift.o",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/UnreadBadgeView.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx15.0",
+        "-incremental",
+        "-enable-batch-mode",
+        "-serialize-diagnostics",
+        "-index-store-path",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/index/store",
+        "-Onone",
+        "-enable-testing",
+        "-j10",
+        "-DSWIFT_PACKAGE",
+        "-DDEBUG",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/ModuleCache",
+        "-parseable-output",
+        "-parse-as-library",
+        "-emit-objc-header",
+        "-emit-objc-header-path",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/include/StorePalFeedback-Swift.h",
+        "-swift-version",
+        "6",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "storepalfeedback"
+      ],
+      "outputFileMapPath" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/APIClient.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/APIError.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/APIModels.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/Configuration.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/DeviceMetadata.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/ConversationStore.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/StorePalFeedback.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/ConversationDetailViewController.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/ConversationsListViewController.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/FeedbackFormViewController.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/FeedbackPanel.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/FeedbackTabViewController.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/FeedbackWindowController.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/CategoryTagView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/MessageBubbleView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/UnreadBadgeView.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/Modules/StorePalFeedback.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/API/APIClient.swift",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/API/APIError.swift",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/API/APIModels.swift",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/Configuration.swift",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/Metadata/DeviceMetadata.swift",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/Storage/ConversationStore.swift",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/StorePalFeedback.swift",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/ConversationDetailViewController.swift",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/ConversationsListViewController.swift",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/FeedbackFormViewController.swift",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/FeedbackPanel.swift",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/FeedbackTabViewController.swift",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/FeedbackWindowController.swift",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/Views/CategoryTagView.swift",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/Views/MessageBubbleView.swift",
+        "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/Views/UnreadBadgeView.swift"
+      ],
+      "tempsPath" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build",
+      "wholeModuleOptimization" : false
+    }
+  },
+  "swiftFrontendCommands" : {
+
+  },
+  "swiftTargetScanArgs" : {
+    "StorePalFeedback" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "StorePalFeedback",
+      "-package-name",
+      "storepalfeedback",
+      "-c",
+      "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/API/APIClient.swift",
+      "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/API/APIError.swift",
+      "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/API/APIModels.swift",
+      "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/Configuration.swift",
+      "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/Metadata/DeviceMetadata.swift",
+      "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/Storage/ConversationStore.swift",
+      "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/StorePalFeedback.swift",
+      "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/ConversationDetailViewController.swift",
+      "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/ConversationsListViewController.swift",
+      "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/FeedbackFormViewController.swift",
+      "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/FeedbackPanel.swift",
+      "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/FeedbackTabViewController.swift",
+      "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/FeedbackWindowController.swift",
+      "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/Views/CategoryTagView.swift",
+      "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/Views/MessageBubbleView.swift",
+      "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/Views/UnreadBadgeView.swift",
+      "-I",
+      "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/Modules",
+      "-target",
+      "arm64-apple-macosx15.0",
+      "-incremental",
+      "-enable-batch-mode",
+      "-serialize-diagnostics",
+      "-index-store-path",
+      "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/index/store",
+      "-Onone",
+      "-enable-testing",
+      "-j10",
+      "-DSWIFT_PACKAGE",
+      "-DDEBUG",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/ModuleCache",
+      "-parseable-output",
+      "-parse-as-library",
+      "-emit-objc-header",
+      "-emit-objc-header-path",
+      "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/include/StorePalFeedback-Swift.h",
+      "-swift-version",
+      "6",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.2.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/PrivateFrameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "storepalfeedback",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap" : {
+    "StorePalFeedback" : [
+
+    ]
+  },
+  "testDiscoveryCommands" : {
+
+  },
+  "testEntryPointCommands" : {
+
+  },
+  "traitConfiguration" : {
+    "default" : {
+
+    }
+  },
+  "writeCommands" : {
+    "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/API/APIClient.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/API/APIError.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/API/APIModels.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/Configuration.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/Metadata/DeviceMetadata.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/Storage/ConversationStore.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/StorePalFeedback.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/ConversationDetailViewController.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/ConversationsListViewController.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/FeedbackFormViewController.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/FeedbackPanel.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/FeedbackTabViewController.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/FeedbackWindowController.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/Views/CategoryTagView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/Views/MessageBubbleView.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/xiao99xiao/Developer/StorePalFeedback/Sources/StorePalFeedback/UI/Views/UnreadBadgeView.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/sources"
+    },
+    "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt" : {
+      "alwaysOutOfDate" : true,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<swift-get-version>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath" : "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/swift-version--58304C5D6DBC2206.txt"
+    }
+  }
+}

@@ -1,0 +1,3 @@
+module StorePalFeedback {
+    header "/Users/xiao99xiao/Developer/StorePalFeedback/.build/arm64-apple-macosx/debug/StorePalFeedback.build/include/StorePalFeedback-Swift.h"
+}

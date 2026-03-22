@@ -25,13 +25,13 @@ actor APIClient {
     func submitFeedback(
         category: String,
         message: String,
-        name: String? = nil,
-        email: String? = nil,
+        name: String,
+        email: String,
         metadata: [String: String]? = nil
     ) async throws -> FeedbackCreated {
         let body = SubmitFeedbackRequest(
-            name: name ?? config.userName,
-            email: email ?? config.userEmail,
+            name: name,
+            email: email,
             category: category,
             message: message,
             metadata: metadata
@@ -41,18 +41,18 @@ actor APIClient {
 
     // MARK: - Conversations
 
-    func listConversations(page: Int = 1) async throws -> ConversationsPage {
-        let email = config.userEmail.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? config.userEmail
-        return try await get("/api/v1/conversations?email=\(email)&page=\(page)&per_page=20")
+    func listConversations(email: String, page: Int = 1) async throws -> ConversationsPage {
+        let encoded = email.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? email
+        return try await get("/api/v1/conversations?email=\(encoded)&page=\(page)&per_page=20")
     }
 
     func getConversation(token: String) async throws -> ConversationDetail {
         return try await get("/api/v1/conversations/\(token)")
     }
 
-    func getUnreadCount() async throws -> Int {
-        let email = config.userEmail.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? config.userEmail
-        let response: UnreadResponse = try await get("/api/v1/conversations/unread?email=\(email)")
+    func getUnreadCount(email: String) async throws -> Int {
+        let encoded = email.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? email
+        let response: UnreadResponse = try await get("/api/v1/conversations/unread?email=\(encoded)")
         return response.unreadCount
     }
 

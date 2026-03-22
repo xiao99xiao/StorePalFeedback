@@ -133,8 +133,9 @@ final class FeedbackTabViewController: NSViewController {
     // MARK: - Badge
 
     private func updateUnreadBadge() {
+        guard let email = conversationsVC.userEmail, !email.isEmpty else { return }
         Task {
-            let count = try? await apiClient.getUnreadCount()
+            let count = try? await apiClient.getUnreadCount(email: email)
             let label = (count ?? 0) > 0 ? "Conversations (\(count!))" : "Conversations"
             segmentedControl.setLabel(label, forSegment: 1)
         }
@@ -144,7 +145,9 @@ final class FeedbackTabViewController: NSViewController {
 // MARK: - Delegate callbacks
 
 extension FeedbackTabViewController: FeedbackFormDelegate {
-    func feedbackFormDidSubmit(conversationToken: String) {
+    func feedbackFormDidSubmit(conversationToken: String, email: String) {
+        // Now we know the user's email — update conversations list
+        conversationsVC.userEmail = email
         updateUnreadBadge()
     }
 }

@@ -2,7 +2,7 @@ import AppKit
 
 @MainActor
 protocol FeedbackFormDelegate: AnyObject {
-    func feedbackFormDidSubmit(conversationToken: String)
+    func feedbackFormDidSubmit(conversationToken: String, email: String)
 }
 
 /// Form for submitting new feedback.
@@ -91,11 +91,11 @@ final class FeedbackFormViewController: NSViewController {
 
         // Name
         addFormField(label: "Name", field: nameField, placeholder: "Your name")
-        nameField.stringValue = config.userName
+        nameField.stringValue = config.userName ?? ""
 
         // Email
         addFormField(label: "Email", field: emailField, placeholder: "your@email.com")
-        emailField.stringValue = config.userEmail
+        emailField.stringValue = config.userEmail ?? ""
 
         // Message
         let messageLabel = NSTextField(labelWithString: "Message")
@@ -217,7 +217,7 @@ final class FeedbackFormViewController: NSViewController {
                 messageTextView.string = ""
                 updatePlaceholder()
                 setFormEnabled(true)
-                delegate?.feedbackFormDidSubmit(conversationToken: result.conversationToken)
+                delegate?.feedbackFormDidSubmit(conversationToken: result.conversationToken, email: emailField.stringValue)
             } catch {
                 spinner.stopAnimation(nil)
                 spinner.isHidden = true

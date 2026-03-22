@@ -4,12 +4,11 @@ import AppKit
 ///
 /// Usage:
 /// ```swift
-/// // Configure once at launch
-/// StorePalFeedback.configure(
-///     apiKey: "sp_live_xxx",
-///     userEmail: "user@example.com",
-///     userName: "John"
-/// )
+/// // Configure once at launch (email and name are optional)
+/// StorePalFeedback.configure(apiKey: "sp_live_xxx")
+///
+/// // Or with known user info
+/// StorePalFeedback.configure(apiKey: "sp_live_xxx", userEmail: user.email, userName: user.name)
 ///
 /// // Show the feedback panel
 /// StorePalFeedback.show()
@@ -30,18 +29,18 @@ public final class StorePalFeedback {
 
     // MARK: - Configure
 
-    /// Configure the SDK with your StorePal API key and user information.
+    /// Configure the SDK with your StorePal API key.
     /// Call this once, typically in `applicationDidFinishLaunching`.
     ///
     /// - Parameters:
     ///   - apiKey: Your StorePal API key (`sp_live_` prefix).
-    ///   - userEmail: Current user's email address.
-    ///   - userName: Current user's display name.
+    ///   - userEmail: Current user's email (optional — user can fill it in the form).
+    ///   - userName: Current user's name (optional — user can fill it in the form).
     ///   - baseURL: Custom API base URL (default: https://storepal.app).
     public static func configure(
         apiKey: String,
-        userEmail: String,
-        userName: String,
+        userEmail: String? = nil,
+        userName: String? = nil,
         baseURL: URL = URL(string: "https://storepal.app")!
     ) {
         let config = StorePalConfiguration(
@@ -76,11 +75,14 @@ public final class StorePalFeedback {
 
     // MARK: - Unread Count
 
-    /// Get the number of unread conversation replies for the current user.
-    /// Use this to display a badge count in your app's UI.
-    public static func unreadCount() async throws -> Int {
+    /// Get the number of unread conversation replies.
+    /// Uses the email from `configure()` if provided, or pass one explicitly.
+    public static func unreadCount(email: String? = nil) async throws -> Int {
         guard let client = shared.apiClient else { throw StorePalError.notConfigured }
-        return try await client.getUnreadCount()
+        guard let resolvedEmail = email ?? shared.config?.userEmail else {
+            return 0 // No email known, can't check unread
+        }
+        return try await client.getUnreadCount(email: resolvedEmail)
     }
 
     // MARK: - Private

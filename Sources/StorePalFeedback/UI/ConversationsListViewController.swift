@@ -12,6 +12,9 @@ final class ConversationsListViewController: NSViewController, NSTableViewDataSo
     private let config: StorePalConfiguration
     private weak var delegate: ConversationsListDelegate?
 
+    /// The email to list conversations for. Updated when the user submits feedback.
+    var userEmail: String?
+
     private let scrollView = NSScrollView()
     private let tableView = NSTableView()
     private let emptyLabel = NSTextField(labelWithString: "No conversations yet")
@@ -27,6 +30,7 @@ final class ConversationsListViewController: NSViewController, NSTableViewDataSo
     init(apiClient: APIClient, config: StorePalConfiguration, delegate: ConversationsListDelegate) {
         self.apiClient = apiClient
         self.config = config
+        self.userEmail = config.userEmail
         self.delegate = delegate
         super.init(nibName: nil, bundle: nil)
     }
@@ -93,13 +97,22 @@ final class ConversationsListViewController: NSViewController, NSTableViewDataSo
     }
 
     func refresh() {
+        guard let email = userEmail, !email.isEmpty else {
+            conversations = []
+            tableView.reloadData()
+            emptyLabel.stringValue = "Submit feedback to see your conversations"
+            emptyLabel.isHidden = false
+            scrollView.isHidden = true
+            return
+        }
+
         loadingSpinner.isHidden = false
         loadingSpinner.startAnimation(nil)
         emptyLabel.isHidden = true
 
         Task {
             do {
-                let page = try await apiClient.listConversations()
+                let page = try await apiClient.listConversations(email: email)
                 conversations = page.conversations
                 tableView.reloadData()
                 emptyLabel.isHidden = !conversations.isEmpty

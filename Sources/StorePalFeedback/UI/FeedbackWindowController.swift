@@ -9,7 +9,7 @@ final class FeedbackWindowController: NSWindowController {
         super.init(window: panel)
 
         panel.contentViewController = formVC
-        panel.title = "Send Feedback"
+        panel.title = L10n.windowTitle
     }
 
     @available(*, unavailable)

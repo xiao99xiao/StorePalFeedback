@@ -1,0 +1,31 @@
+/* Window */
+"window.title" = "フィードバックを送信";
+
+/* Form labels */
+"form.category" = "カテゴリ";
+"form.name" = "お名前";
+"form.name.placeholder" = "お名前を入力";
+"form.email" = "メールアドレス";
+"form.email.placeholder" = "your@email.com";
+"form.message" = "メッセージ";
+"form.message.placeholder" = "フィードバックの内容を入力してください...";
+"form.submit" = "送信";
+
+/* Categories */
+"category.bug" = "バグ報告";
+"category.feature" = "機能リクエスト";
+"category.question" = "質問";
+"category.other" = "その他";
+
+/* Validation */
+"validation.name_email_required" = "名前とメールアドレスは必須です。";
+"validation.message_too_short" = "メッセージは10文字以上で入力してください。";
+
+/* Status */
+"status.error" = "エラーが発生しました。もう一度お試しください。";
+
+/* Success */
+"success.title" = "ありがとうございます！";
+"success.subtitle" = "フィードバックを受け付けました。必要に応じてご連絡いたします。";
+"success.send_another" = "別のフィードバックを送信";
+"success.close" = "閉じる";

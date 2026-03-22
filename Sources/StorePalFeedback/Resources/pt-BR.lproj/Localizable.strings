@@ -1,0 +1,31 @@
+/* Window */
+"window.title" = "Enviar feedback";
+
+/* Form labels */
+"form.category" = "Categoria";
+"form.name" = "Nome";
+"form.name.placeholder" = "Seu nome";
+"form.email" = "E-mail";
+"form.email.placeholder" = "your@email.com";
+"form.message" = "Mensagem";
+"form.message.placeholder" = "Descreva seu feedback...";
+"form.submit" = "Enviar feedback";
+
+/* Categories */
+"category.bug" = "Relatório de bug";
+"category.feature" = "Solicitação de recurso";
+"category.question" = "Pergunta";
+"category.other" = "Outro";
+
+/* Validation */
+"validation.name_email_required" = "Nome e e-mail são obrigatórios.";
+"validation.message_too_short" = "A mensagem deve ter pelo menos 10 caracteres.";
+
+/* Status */
+"status.error" = "Algo deu errado. Tente novamente.";
+
+/* Success */
+"success.title" = "Obrigado!";
+"success.subtitle" = "Seu feedback foi recebido. Entraremos em contato se necessário.";
+"success.send_another" = "Enviar outro";
+"success.close" = "Fechar";

@@ -14,9 +14,9 @@ final class FeedbackFormViewController: NSViewController {
     private let emailField = NSTextField()
     private let messageScrollView = NSScrollView()
     private let messageTextView = NSTextView()
-    private let placeholderLabel = NSTextField(labelWithString: "Describe your feedback...")
+    private let placeholderLabel = NSTextField(labelWithString: "")
     private let metadataLabel = NSTextField(labelWithString: "")
-    private let submitButton = NSButton(title: "Submit Feedback", target: nil, action: nil)
+    private let submitButton = NSButton(title: "", target: nil, action: nil)
     private let statusLabel = NSTextField(labelWithString: "")
     private let spinner = NSProgressIndicator()
 
@@ -61,26 +61,26 @@ final class FeedbackFormViewController: NSViewController {
         ])
 
         // Category
-        addLabel("Category", to: formStack)
+        addLabel(L10n.category, to: formStack)
         for cat in FeedbackCategory.allCases {
             categoryPopup.addItem(withTitle: cat.displayName)
         }
         formStack.addArrangedSubview(categoryPopup)
 
         // Name
-        addLabel("Name", to: formStack)
-        nameField.placeholderString = "Your name"
+        addLabel(L10n.name, to: formStack)
+        nameField.placeholderString = L10n.namePlaceholder
         nameField.font = .systemFont(ofSize: 13)
         formStack.addArrangedSubview(nameField)
 
         // Email
-        addLabel("Email", to: formStack)
-        emailField.placeholderString = "your@email.com"
+        addLabel(L10n.email, to: formStack)
+        emailField.placeholderString = L10n.emailPlaceholder
         emailField.font = .systemFont(ofSize: 13)
         formStack.addArrangedSubview(emailField)
 
         // Message
-        addLabel("Message", to: formStack)
+        addLabel(L10n.message, to: formStack)
         messageTextView.isRichText = false
         messageTextView.font = .systemFont(ofSize: 13)
         messageTextView.textContainerInset = NSSize(width: 6, height: 6)
@@ -93,6 +93,7 @@ final class FeedbackFormViewController: NSViewController {
         formStack.addArrangedSubview(messageScrollView)
 
         // Placeholder
+        placeholderLabel.stringValue = L10n.messagePlaceholder
         placeholderLabel.textColor = .placeholderTextColor
         placeholderLabel.font = .systemFont(ofSize: 13)
         placeholderLabel.isBezeled = false
@@ -121,6 +122,7 @@ final class FeedbackFormViewController: NSViewController {
         submitRow.orientation = .horizontal
         submitRow.spacing = 8
 
+        submitButton.title = L10n.submit
         submitButton.bezelStyle = .rounded
         submitButton.controlSize = .large
         submitButton.keyEquivalent = "\r"
@@ -176,7 +178,7 @@ final class FeedbackFormViewController: NSViewController {
 
         // Checkmark icon
         let checkImage = NSImageView()
-        if let symbol = NSImage(systemSymbolName: "checkmark.circle.fill", accessibilityDescription: "Success") {
+        if let symbol = NSImage(systemSymbolName: "checkmark.circle.fill", accessibilityDescription: nil) {
             let config = NSImage.SymbolConfiguration(pointSize: 48, weight: .light)
             checkImage.image = symbol.withSymbolConfiguration(config)
             checkImage.contentTintColor = .systemGreen
@@ -184,14 +186,14 @@ final class FeedbackFormViewController: NSViewController {
         stack.addArrangedSubview(checkImage)
 
         // Title
-        let title = NSTextField(labelWithString: "Thank you!")
+        let title = NSTextField(labelWithString: L10n.successTitle)
         title.font = .systemFont(ofSize: 20, weight: .semibold)
         title.textColor = .labelColor
         title.alignment = .center
         stack.addArrangedSubview(title)
 
         // Subtitle
-        let subtitle = NSTextField(wrappingLabelWithString: "Your feedback has been received. We'll review it and get back to you if needed.")
+        let subtitle = NSTextField(wrappingLabelWithString: L10n.successSubtitle)
         subtitle.font = .systemFont(ofSize: 13)
         subtitle.textColor = .secondaryLabelColor
         subtitle.alignment = .center
@@ -204,13 +206,13 @@ final class FeedbackFormViewController: NSViewController {
         stack.addArrangedSubview(spacer)
 
         // "Send Another" button
-        let anotherButton = NSButton(title: "Send Another", target: self, action: #selector(sendAnotherTapped))
+        let anotherButton = NSButton(title: L10n.sendAnother, target: self, action: #selector(sendAnotherTapped))
         anotherButton.bezelStyle = .rounded
         anotherButton.controlSize = .large
         stack.addArrangedSubview(anotherButton)
 
         // "Close" button
-        let closeButton = NSButton(title: "Close", target: self, action: #selector(closeTapped))
+        let closeButton = NSButton(title: L10n.close, target: self, action: #selector(closeTapped))
         closeButton.bezelStyle = .rounded
         closeButton.controlSize = .regular
         stack.addArrangedSubview(closeButton)
@@ -238,11 +240,11 @@ final class FeedbackFormViewController: NSViewController {
         let message = messageTextView.string.trimmingCharacters(in: .whitespacesAndNewlines)
 
         if name.isEmpty || email.isEmpty {
-            showStatus("Name and email are required.", isError: true)
+            showStatus(L10n.nameEmailRequired, isError: true)
             return
         }
         if message.count < 10 {
-            showStatus("Message must be at least 10 characters.", isError: true)
+            showStatus(L10n.messageTooShort, isError: true)
             return
         }
 
@@ -276,7 +278,7 @@ final class FeedbackFormViewController: NSViewController {
                 let msg = (error as? StorePalError).flatMap { err -> String? in
                     if case .apiError(let e) = err { return e.message }
                     return nil
-                } ?? "Something went wrong. Please try again."
+                } ?? L10n.genericError
                 showStatus(msg, isError: true)
                 setFormEnabled(true)
             }

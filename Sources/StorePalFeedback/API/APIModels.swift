@@ -84,10 +84,10 @@ public enum FeedbackCategory: String, CaseIterable, Sendable {
 
     public var displayName: String {
         switch self {
-        case .bug: "Bug Report"
-        case .feature: "Feature Request"
-        case .question: "Question"
-        case .other: "Other"
+        case .bug: L10n.categoryBug
+        case .feature: L10n.categoryFeature
+        case .question: L10n.categoryQuestion
+        case .other: L10n.categoryOther
         }
     }
 }

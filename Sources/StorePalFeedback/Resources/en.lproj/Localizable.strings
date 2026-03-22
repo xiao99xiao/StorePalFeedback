@@ -1,0 +1,31 @@
+/* Window */
+"window.title" = "Send Feedback";
+
+/* Form labels */
+"form.category" = "Category";
+"form.name" = "Name";
+"form.name.placeholder" = "Your name";
+"form.email" = "Email";
+"form.email.placeholder" = "your@email.com";
+"form.message" = "Message";
+"form.message.placeholder" = "Describe your feedback...";
+"form.submit" = "Submit Feedback";
+
+/* Categories */
+"category.bug" = "Bug Report";
+"category.feature" = "Feature Request";
+"category.question" = "Question";
+"category.other" = "Other";
+
+/* Validation */
+"validation.name_email_required" = "Name and email are required.";
+"validation.message_too_short" = "Message must be at least 10 characters.";
+
+/* Status */
+"status.error" = "Something went wrong. Please try again.";
+
+/* Success */
+"success.title" = "Thank you!";
+"success.subtitle" = "Your feedback has been received. We'll review it and get back to you if needed.";
+"success.send_another" = "Send Another";
+"success.close" = "Close";

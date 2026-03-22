@@ -1,0 +1,31 @@
+/* Window */
+"window.title" = "Enviar comentario";
+
+/* Form labels */
+"form.category" = "Categoría";
+"form.name" = "Nombre";
+"form.name.placeholder" = "Tu nombre";
+"form.email" = "Correo electrónico";
+"form.email.placeholder" = "your@email.com";
+"form.message" = "Mensaje";
+"form.message.placeholder" = "Describe tu comentario...";
+"form.submit" = "Enviar";
+
+/* Categories */
+"category.bug" = "Reporte de error";
+"category.feature" = "Solicitud de función";
+"category.question" = "Pregunta";
+"category.other" = "Otro";
+
+/* Validation */
+"validation.name_email_required" = "El nombre y el correo son obligatorios.";
+"validation.message_too_short" = "El mensaje debe tener al menos 10 caracteres.";
+
+/* Status */
+"status.error" = "Algo salió mal. Por favor, inténtalo de nuevo.";
+
+/* Success */
+"success.title" = "¡Gracias!";
+"success.subtitle" = "Hemos recibido tu comentario. Te contactaremos si es necesario.";
+"success.send_another" = "Enviar otro";
+"success.close" = "Cerrar";

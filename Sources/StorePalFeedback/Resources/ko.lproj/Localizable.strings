@@ -1,0 +1,31 @@
+/* Window */
+"window.title" = "피드백 보내기";
+
+/* Form labels */
+"form.category" = "카테고리";
+"form.name" = "이름";
+"form.name.placeholder" = "이름을 입력하세요";
+"form.email" = "이메일";
+"form.email.placeholder" = "your@email.com";
+"form.message" = "메시지";
+"form.message.placeholder" = "피드백 내용을 입력하세요...";
+"form.submit" = "피드백 보내기";
+
+/* Categories */
+"category.bug" = "버그 신고";
+"category.feature" = "기능 요청";
+"category.question" = "질문";
+"category.other" = "기타";
+
+/* Validation */
+"validation.name_email_required" = "이름과 이메일을 입력해주세요.";
+"validation.message_too_short" = "메시지는 10자 이상이어야 합니다.";
+
+/* Status */
+"status.error" = "오류가 발생했습니다. 다시 시도해주세요.";
+
+/* Success */
+"success.title" = "감사합니다!";
+"success.subtitle" = "피드백이 접수되었습니다. 필요한 경우 연락드리겠습니다.";
+"success.send_another" = "추가 피드백 보내기";
+"success.close" = "닫기";

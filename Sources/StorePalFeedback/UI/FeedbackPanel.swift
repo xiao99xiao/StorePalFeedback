@@ -24,4 +24,34 @@ final class FeedbackPanel: NSPanel {
         setContentSize(NSSize(width: 480, height: 450))
         center()
     }
+
+    /// Handle standard editing shortcuts (Cmd+A/C/V/X/Z) even when the host app
+    /// doesn't provide them in its Edit menu.
+    override func performKeyEquivalent(with event: NSEvent) -> Bool {
+        guard event.modifierFlags.contains(.command),
+              let chars = event.charactersIgnoringModifiers else {
+            return super.performKeyEquivalent(with: event)
+        }
+
+        var action: Selector?
+        switch chars {
+        case "a": action = #selector(NSText.selectAll(_:))
+        case "c": action = #selector(NSText.copy(_:))
+        case "v": action = #selector(NSText.paste(_:))
+        case "x": action = #selector(NSText.cut(_:))
+        case "z":
+            if event.modifierFlags.contains(.shift) {
+                action = #selector(UndoManager.redo)
+            } else {
+                action = #selector(UndoManager.undo)
+            }
+        default: break
+        }
+
+        if let action, NSApp.sendAction(action, to: nil, from: self) {
+            return true
+        }
+
+        return super.performKeyEquivalent(with: event)
+    }
 }

@@ -6,8 +6,10 @@ let package = Package(
     platforms: [.macOS(.v15)],
     products: [
         .library(name: "StorePalFeedback", targets: ["StorePalFeedback"]),
+        .library(name: "StorePalFeedbackUI", targets: ["StorePalFeedbackUI"]),
     ],
     targets: [
         .target(name: "StorePalFeedback"),
+        .target(name: "StorePalFeedbackUI", dependencies: ["StorePalFeedback"]),
     ]
 )

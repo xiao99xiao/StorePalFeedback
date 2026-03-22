@@ -1,17 +1,11 @@
 import AppKit
 
-@MainActor
-protocol FeedbackFormDelegate: AnyObject {
-    func feedbackFormDidSubmit(conversationToken: String, email: String)
-}
-
 /// Form for submitting new feedback.
 @MainActor
 final class FeedbackFormViewController: NSViewController {
     private let apiClient: APIClient
     private let config: StorePalConfiguration
     private let store: ConversationStore
-    private weak var delegate: FeedbackFormDelegate?
 
     private let stackView = NSStackView()
     private let categoryPopup = NSPopUpButton()
@@ -29,11 +23,10 @@ final class FeedbackFormViewController: NSViewController {
     /// Whether the name/email fields are currently locked (user previously submitted)
     private var identityLocked = false
 
-    init(apiClient: APIClient, config: StorePalConfiguration, store: ConversationStore, delegate: FeedbackFormDelegate) {
+    init(apiClient: APIClient, config: StorePalConfiguration, store: ConversationStore) {
         self.apiClient = apiClient
         self.config = config
         self.store = store
-        self.delegate = delegate
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -287,7 +280,7 @@ final class FeedbackFormViewController: NSViewController {
                 updatePlaceholder()
                 lockIdentity()
                 setFormEnabled(true)
-                delegate?.feedbackFormDidSubmit(conversationToken: result.conversationToken, email: email)
+                // Token saved, identity persisted — ready for future reference
             } catch {
                 spinner.stopAnimation(nil)
                 spinner.isHidden = true

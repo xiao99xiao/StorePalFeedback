@@ -73,18 +73,6 @@ public final class StorePalFeedback {
         shared.windowController?.togglePanel()
     }
 
-    // MARK: - Unread Count
-
-    /// Get the number of unread conversation replies.
-    /// Uses the email from `configure()` if provided, or pass one explicitly.
-    public static func unreadCount(email: String? = nil) async throws -> Int {
-        guard let client = shared.apiClient else { throw StorePalError.notConfigured }
-        guard let resolvedEmail = email ?? shared.config?.userEmail else {
-            return 0 // No email known, can't check unread
-        }
-        return try await client.getUnreadCount(email: resolvedEmail)
-    }
-
     // MARK: - Private
 
     private func ensureWindow() {

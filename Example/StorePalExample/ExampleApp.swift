@@ -31,11 +31,6 @@ struct ContentView: View {
             FeedbackButton {
                 Label("Report a Bug", systemImage: "ladybug")
             }
-
-            HStack {
-                Text("Unread replies:")
-                UnreadCountBadge()
-            }
         }
         .padding(40)
     }

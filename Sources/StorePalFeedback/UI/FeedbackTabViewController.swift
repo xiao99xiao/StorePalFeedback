@@ -27,15 +27,29 @@ final class FeedbackTabViewController: NSViewController {
     required init?(coder: NSCoder) { fatalError() }
 
     override func loadView() {
-        let root = NSView()
+        let root = NSView(frame: NSRect(x: 0, y: 0, width: 420, height: 580))
         root.wantsLayer = true
+
+        // Segmented control at the top
+        segmentedControl.segmentCount = 2
+        segmentedControl.setLabel("Send Feedback", forSegment: 0)
+        segmentedControl.setLabel("Conversations", forSegment: 1)
+        segmentedControl.selectedSegment = 0
+        segmentedControl.segmentStyle = .automatic
+        segmentedControl.target = self
+        segmentedControl.action = #selector(segmentChanged)
+        segmentedControl.translatesAutoresizingMaskIntoConstraints = false
+        root.addSubview(segmentedControl)
 
         // Container for child view controllers
         containerView.translatesAutoresizingMaskIntoConstraints = false
         root.addSubview(containerView)
 
         NSLayoutConstraint.activate([
-            containerView.topAnchor.constraint(equalTo: root.topAnchor),
+            segmentedControl.topAnchor.constraint(equalTo: root.topAnchor, constant: 12),
+            segmentedControl.centerXAnchor.constraint(equalTo: root.centerXAnchor),
+
+            containerView.topAnchor.constraint(equalTo: segmentedControl.bottomAnchor, constant: 12),
             containerView.leadingAnchor.constraint(equalTo: root.leadingAnchor),
             containerView.trailingAnchor.constraint(equalTo: root.trailingAnchor),
             containerView.bottomAnchor.constraint(equalTo: root.bottomAnchor),
@@ -46,45 +60,14 @@ final class FeedbackTabViewController: NSViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupTitlebarSegmentedControl()
         showChild(formVC)
+        updateUnreadBadge()
     }
 
     func refreshIfNeeded() {
         if currentChild === conversationsVC {
             conversationsVC.refresh()
         }
-        updateUnreadBadge()
-    }
-
-    // MARK: - Titlebar segmented control
-
-    private func setupTitlebarSegmentedControl() {
-        segmentedControl.segmentCount = 2
-        segmentedControl.setLabel("Send Feedback", forSegment: 0)
-        segmentedControl.setLabel("Conversations", forSegment: 1)
-        segmentedControl.selectedSegment = 0
-        segmentedControl.segmentStyle = .automatic
-        segmentedControl.target = self
-        segmentedControl.action = #selector(segmentChanged)
-
-        let accessory = NSTitlebarAccessoryViewController()
-        accessory.layoutAttribute = .bottom
-        let wrapper = NSView()
-        segmentedControl.translatesAutoresizingMaskIntoConstraints = false
-        wrapper.addSubview(segmentedControl)
-        NSLayoutConstraint.activate([
-            segmentedControl.centerXAnchor.constraint(equalTo: wrapper.centerXAnchor),
-            segmentedControl.centerYAnchor.constraint(equalTo: wrapper.centerYAnchor),
-            wrapper.heightAnchor.constraint(equalToConstant: 32),
-        ])
-        accessory.view = wrapper
-
-        // Defer adding to window until window is available
-        DispatchQueue.main.async { [weak self] in
-            self?.view.window?.addTitlebarAccessoryViewController(accessory)
-        }
-
         updateUnreadBadge()
     }
 
@@ -146,7 +129,6 @@ final class FeedbackTabViewController: NSViewController {
 
 extension FeedbackTabViewController: FeedbackFormDelegate {
     func feedbackFormDidSubmit(conversationToken: String, email: String) {
-        // Now we know the user's email — update conversations list
         conversationsVC.userEmail = email
         updateUnreadBadge()
     }

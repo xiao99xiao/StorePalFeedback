@@ -13,7 +13,6 @@ final class FeedbackFormViewController: NSViewController {
     private let store: ConversationStore
     private weak var delegate: FeedbackFormDelegate?
 
-    private let scrollView = NSScrollView()
     private let stackView = NSStackView()
     private let categoryPopup = NSPopUpButton()
     private let nameField = NSTextField()
@@ -22,7 +21,7 @@ final class FeedbackFormViewController: NSViewController {
     private let messageTextView = NSTextView()
     private let placeholderLabel = NSTextField(labelWithString: "Describe your feedback...")
     private let metadataLabel = NSTextField(labelWithString: "")
-    private let submitButton = NSButton()
+    private let submitButton = NSButton(title: "Submit Feedback", target: nil, action: nil)
     private let statusLabel = NSTextField(labelWithString: "")
     private let spinner = NSProgressIndicator()
 
@@ -40,94 +39,67 @@ final class FeedbackFormViewController: NSViewController {
     override func loadView() {
         let root = NSView()
 
-        // Scroll view wrapping the form
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
-        scrollView.hasVerticalScroller = true
-        scrollView.drawsBackground = false
-        scrollView.documentView = NSView()
-        root.addSubview(scrollView)
-
-        NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: root.topAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: root.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: root.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: root.bottomAnchor),
-        ])
-
-        // Stack view inside scroll view
         stackView.orientation = .vertical
-        stackView.spacing = 12
+        stackView.spacing = 10
         stackView.alignment = .leading
+        stackView.edgeInsets = NSEdgeInsets(top: 16, left: 20, bottom: 20, right: 20)
         stackView.translatesAutoresizingMaskIntoConstraints = false
+        root.addSubview(stackView)
 
-        let docView = scrollView.documentView!
-        docView.addSubview(stackView)
         NSLayoutConstraint.activate([
-            stackView.topAnchor.constraint(equalTo: docView.topAnchor, constant: 52),
-            stackView.leadingAnchor.constraint(equalTo: docView.leadingAnchor, constant: 20),
-            stackView.trailingAnchor.constraint(equalTo: docView.trailingAnchor, constant: -20),
-            stackView.bottomAnchor.constraint(lessThanOrEqualTo: docView.bottomAnchor, constant: -20),
-            stackView.widthAnchor.constraint(equalTo: scrollView.widthAnchor, constant: -40),
+            stackView.topAnchor.constraint(equalTo: root.topAnchor),
+            stackView.leadingAnchor.constraint(equalTo: root.leadingAnchor),
+            stackView.trailingAnchor.constraint(equalTo: root.trailingAnchor),
         ])
-
-        // Title
-        let title = NSTextField(labelWithString: "Send Feedback")
-        title.font = .systemFont(ofSize: 18, weight: .bold)
-        title.textColor = .labelColor
-        stackView.addArrangedSubview(title)
 
         // Category
-        let categoryLabel = NSTextField(labelWithString: "Category")
-        categoryLabel.font = .systemFont(ofSize: 12, weight: .medium)
-        categoryLabel.textColor = .secondaryLabelColor
-        stackView.addArrangedSubview(categoryLabel)
-
+        addLabel("Category")
         for cat in FeedbackCategory.allCases {
             categoryPopup.addItem(withTitle: cat.displayName)
         }
-        categoryPopup.translatesAutoresizingMaskIntoConstraints = false
         stackView.addArrangedSubview(categoryPopup)
-        categoryPopup.widthAnchor.constraint(equalTo: stackView.widthAnchor).isActive = true
 
         // Name
-        addFormField(label: "Name", field: nameField, placeholder: "Your name")
+        addLabel("Name")
+        nameField.placeholderString = "Your name"
+        nameField.font = .systemFont(ofSize: 13)
         nameField.stringValue = config.userName ?? ""
+        stackView.addArrangedSubview(nameField)
 
         // Email
-        addFormField(label: "Email", field: emailField, placeholder: "your@email.com")
+        addLabel("Email")
+        emailField.placeholderString = "your@email.com"
+        emailField.font = .systemFont(ofSize: 13)
         emailField.stringValue = config.userEmail ?? ""
+        stackView.addArrangedSubview(emailField)
 
         // Message
-        let messageLabel = NSTextField(labelWithString: "Message")
-        messageLabel.font = .systemFont(ofSize: 12, weight: .medium)
-        messageLabel.textColor = .secondaryLabelColor
-        stackView.addArrangedSubview(messageLabel)
+        addLabel("Message")
 
-        messageScrollView.hasVerticalScroller = true
-        messageScrollView.borderType = .bezelBorder
-        messageScrollView.translatesAutoresizingMaskIntoConstraints = false
         messageTextView.isRichText = false
         messageTextView.font = .systemFont(ofSize: 13)
-        messageTextView.textContainerInset = NSSize(width: 8, height: 8)
+        messageTextView.textContainerInset = NSSize(width: 6, height: 6)
         messageTextView.isAutomaticQuoteSubstitutionEnabled = false
         messageTextView.isAutomaticDashSubstitutionEnabled = false
         messageTextView.delegate = self
+
         messageScrollView.documentView = messageTextView
-
+        messageScrollView.hasVerticalScroller = true
+        messageScrollView.borderType = .bezelBorder
         stackView.addArrangedSubview(messageScrollView)
-        NSLayoutConstraint.activate([
-            messageScrollView.widthAnchor.constraint(equalTo: stackView.widthAnchor),
-            messageScrollView.heightAnchor.constraint(greaterThanOrEqualToConstant: 120),
-        ])
 
-        // Placeholder overlay
+        // Placeholder
         placeholderLabel.textColor = .placeholderTextColor
         placeholderLabel.font = .systemFont(ofSize: 13)
+        placeholderLabel.isBezeled = false
+        placeholderLabel.drawsBackground = false
+        placeholderLabel.isEditable = false
+        placeholderLabel.isSelectable = false
         placeholderLabel.translatesAutoresizingMaskIntoConstraints = false
         messageTextView.addSubview(placeholderLabel)
         NSLayoutConstraint.activate([
-            placeholderLabel.topAnchor.constraint(equalTo: messageTextView.topAnchor, constant: 8),
-            placeholderLabel.leadingAnchor.constraint(equalTo: messageTextView.leadingAnchor, constant: 12),
+            placeholderLabel.topAnchor.constraint(equalTo: messageTextView.topAnchor, constant: 6),
+            placeholderLabel.leadingAnchor.constraint(equalTo: messageTextView.leadingAnchor, constant: 10),
         ])
 
         // System info
@@ -145,7 +117,6 @@ final class FeedbackFormViewController: NSViewController {
         submitRow.orientation = .horizontal
         submitRow.spacing = 8
 
-        submitButton.title = "Submit Feedback"
         submitButton.bezelStyle = .push
         submitButton.controlSize = .large
         submitButton.keyEquivalent = "\r"
@@ -164,32 +135,38 @@ final class FeedbackFormViewController: NSViewController {
         submitRow.addArrangedSubview(statusLabel)
 
         stackView.addArrangedSubview(submitRow)
-        submitRow.widthAnchor.constraint(equalTo: stackView.widthAnchor).isActive = true
+
+        // Width constraints for form fields
+        for field in [categoryPopup, nameField, emailField, messageScrollView, submitRow] as [NSView] {
+            field.translatesAutoresizingMaskIntoConstraints = false
+            field.widthAnchor.constraint(equalTo: stackView.widthAnchor, constant: -40).isActive = true
+        }
+
+        messageScrollView.heightAnchor.constraint(greaterThanOrEqualToConstant: 120).isActive = true
 
         self.view = root
     }
 
-    private func addFormField(label text: String, field: NSTextField, placeholder: String) {
+    private func addLabel(_ text: String) {
         let label = NSTextField(labelWithString: text)
         label.font = .systemFont(ofSize: 12, weight: .medium)
         label.textColor = .secondaryLabelColor
         stackView.addArrangedSubview(label)
-
-        field.placeholderString = placeholder
-        field.font = .systemFont(ofSize: 13)
-        field.translatesAutoresizingMaskIntoConstraints = false
-        stackView.addArrangedSubview(field)
-        field.widthAnchor.constraint(equalTo: stackView.widthAnchor).isActive = true
     }
 
     // MARK: - Submit
 
     @objc private func submitTapped() {
+        let name = nameField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
+        let email = emailField.stringValue.trimmingCharacters(in: .whitespacesAndNewlines)
         let message = messageTextView.string.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !nameField.stringValue.isEmpty,
-              !emailField.stringValue.isEmpty,
-              message.count >= 10 else {
-            showStatus("Please fill in all fields (message must be at least 10 characters).", isError: true)
+
+        if name.isEmpty || email.isEmpty {
+            showStatus("Name and email are required.", isError: true)
+            return
+        }
+        if message.count < 10 {
+            showStatus("Message must be at least 10 characters.", isError: true)
             return
         }
 
@@ -206,8 +183,8 @@ final class FeedbackFormViewController: NSViewController {
                 let result = try await apiClient.submitFeedback(
                     category: category.rawValue,
                     message: message,
-                    name: nameField.stringValue,
-                    email: emailField.stringValue,
+                    name: name,
+                    email: email,
                     metadata: metadata
                 )
                 store.saveToken(result.conversationToken)
@@ -217,15 +194,15 @@ final class FeedbackFormViewController: NSViewController {
                 messageTextView.string = ""
                 updatePlaceholder()
                 setFormEnabled(true)
-                delegate?.feedbackFormDidSubmit(conversationToken: result.conversationToken, email: emailField.stringValue)
+                delegate?.feedbackFormDidSubmit(conversationToken: result.conversationToken, email: email)
             } catch {
                 spinner.stopAnimation(nil)
                 spinner.isHidden = true
-                let message = (error as? StorePalError).flatMap { err -> String? in
+                let msg = (error as? StorePalError).flatMap { err -> String? in
                     if case .apiError(let e) = err { return e.message }
                     return nil
                 } ?? "Something went wrong. Please try again."
-                showStatus(message, isError: true)
+                showStatus(msg, isError: true)
                 setFormEnabled(true)
             }
         }

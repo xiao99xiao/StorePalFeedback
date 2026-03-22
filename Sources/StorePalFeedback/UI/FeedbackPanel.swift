@@ -1,11 +1,10 @@
 import AppKit
 
-/// Floating panel for the feedback UI. Uses system Liquid Glass chrome on macOS 26.
+/// Floating panel for the feedback UI.
 final class FeedbackPanel: NSPanel {
     init() {
-        let size = NSRect(x: 0, y: 0, width: 420, height: 580)
         super.init(
-            contentRect: size,
+            contentRect: NSRect(x: 0, y: 0, width: 480, height: 420),
             styleMask: [.titled, .closable, .resizable],
             backing: .buffered,
             defer: false
@@ -19,10 +18,10 @@ final class FeedbackPanel: NSPanel {
         isReleasedWhenClosed = false
         animationBehavior = .utilityWindow
 
-        minSize = NSSize(width: 380, height: 500)
-        maxSize = NSSize(width: 500, height: 800)
+        minSize = NSSize(width: 420, height: 360)
+        maxSize = NSSize(width: 600, height: 600)
 
-        setContentSize(NSSize(width: 420, height: 580))
+        setContentSize(NSSize(width: 480, height: 420))
         center()
     }
 }

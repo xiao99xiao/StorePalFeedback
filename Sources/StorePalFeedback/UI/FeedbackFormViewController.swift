@@ -117,9 +117,10 @@ final class FeedbackFormViewController: NSViewController {
         submitRow.orientation = .horizontal
         submitRow.spacing = 8
 
-        submitButton.bezelStyle = .push
+        submitButton.bezelStyle = .rounded
         submitButton.controlSize = .large
         submitButton.keyEquivalent = "\r"
+        submitButton.hasDestructiveAction = false
         submitButton.target = self
         submitButton.action = #selector(submitTapped)
         submitRow.addArrangedSubview(submitButton)

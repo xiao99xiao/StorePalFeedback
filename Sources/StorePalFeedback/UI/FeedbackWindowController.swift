@@ -109,6 +109,8 @@ final class FeedbackWindowController: NSWindowController, NSToolbarDelegate {
             navButton.image = NSImage(systemSymbolName: "tray.full", accessibilityDescription: "My Feedbacks")
             navButton.imagePosition = .imageLeading
         case .list:
+            // Ensure list has the latest email from store
+            listVC.userEmail = store.resolveEmail(configEmail: config.userEmail)
             listVC.refresh()
             vc = listVC
             window?.title = "My Feedbacks"

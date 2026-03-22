@@ -17,6 +17,7 @@ final class FeedbackFormViewController: NSViewController {
     private let categoryPopup = NSPopUpButton()
     private let nameField = NSTextField()
     private let emailField = NSTextField()
+    private let changeIdentityButton = NSButton(title: "Change", target: nil, action: nil)
     private let messageScrollView = NSScrollView()
     private let messageTextView = NSTextView()
     private let placeholderLabel = NSTextField(labelWithString: "Describe your feedback...")
@@ -24,6 +25,9 @@ final class FeedbackFormViewController: NSViewController {
     private let submitButton = NSButton(title: "Submit Feedback", target: nil, action: nil)
     private let statusLabel = NSTextField(labelWithString: "")
     private let spinner = NSProgressIndicator()
+
+    /// Whether the name/email fields are currently locked (user previously submitted)
+    private var identityLocked = false
 
     init(apiClient: APIClient, config: StorePalConfiguration, store: ConversationStore, delegate: FeedbackFormDelegate) {
         self.apiClient = apiClient
@@ -63,14 +67,29 @@ final class FeedbackFormViewController: NSViewController {
         addLabel("Name")
         nameField.placeholderString = "Your name"
         nameField.font = .systemFont(ofSize: 13)
-        nameField.stringValue = config.userName ?? ""
         stackView.addArrangedSubview(nameField)
 
-        // Email
-        addLabel("Email")
+        // Email + Change button row
+        let emailLabelRow = NSStackView()
+        emailLabelRow.orientation = .horizontal
+        emailLabelRow.spacing = 4
+        let emailLabel = NSTextField(labelWithString: "Email")
+        emailLabel.font = .systemFont(ofSize: 12, weight: .medium)
+        emailLabel.textColor = .secondaryLabelColor
+        emailLabelRow.addArrangedSubview(emailLabel)
+
+        changeIdentityButton.bezelStyle = .rounded
+        changeIdentityButton.controlSize = .mini
+        changeIdentityButton.font = .systemFont(ofSize: 10)
+        changeIdentityButton.target = self
+        changeIdentityButton.action = #selector(changeIdentityTapped)
+        changeIdentityButton.isHidden = true
+        emailLabelRow.addArrangedSubview(changeIdentityButton)
+
+        stackView.addArrangedSubview(emailLabelRow)
+
         emailField.placeholderString = "your@email.com"
         emailField.font = .systemFont(ofSize: 13)
-        emailField.stringValue = config.userEmail ?? ""
         stackView.addArrangedSubview(emailField)
 
         // Message
@@ -120,7 +139,6 @@ final class FeedbackFormViewController: NSViewController {
         submitButton.bezelStyle = .rounded
         submitButton.controlSize = .large
         submitButton.keyEquivalent = "\r"
-        submitButton.hasDestructiveAction = false
         submitButton.target = self
         submitButton.action = #selector(submitTapped)
         submitRow.addArrangedSubview(submitButton)
@@ -137,15 +155,84 @@ final class FeedbackFormViewController: NSViewController {
 
         stackView.addArrangedSubview(submitRow)
 
-        // Width constraints for form fields
+        // Width constraints
         for field in [categoryPopup, nameField, emailField, messageScrollView, submitRow] as [NSView] {
             field.translatesAutoresizingMaskIntoConstraints = false
             field.widthAnchor.constraint(equalTo: stackView.widthAnchor, constant: -40).isActive = true
         }
+        emailLabelRow.translatesAutoresizingMaskIntoConstraints = false
 
         messageScrollView.heightAnchor.constraint(greaterThanOrEqualToConstant: 120).isActive = true
 
         self.view = root
+
+        // Populate from saved identity or config
+        loadIdentity()
+    }
+
+    // MARK: - Identity management
+
+    private func loadIdentity() {
+        let name = store.resolveName(configName: config.userName) ?? ""
+        let email = store.resolveEmail(configEmail: config.userEmail) ?? ""
+
+        nameField.stringValue = name
+        emailField.stringValue = email
+
+        // Lock if we have a saved identity (user has submitted before)
+        if store.savedEmail != nil {
+            lockIdentity()
+        }
+    }
+
+    private func lockIdentity() {
+        identityLocked = true
+        nameField.isEditable = false
+        nameField.isSelectable = false
+        nameField.drawsBackground = false
+        nameField.isBezeled = false
+        nameField.textColor = .labelColor
+
+        emailField.isEditable = false
+        emailField.isSelectable = false
+        emailField.drawsBackground = false
+        emailField.isBezeled = false
+        emailField.textColor = .labelColor
+
+        changeIdentityButton.isHidden = false
+    }
+
+    private func unlockIdentity() {
+        identityLocked = false
+        nameField.isEditable = true
+        nameField.isSelectable = true
+        nameField.drawsBackground = true
+        nameField.isBezeled = true
+        nameField.textColor = .controlTextColor
+
+        emailField.isEditable = true
+        emailField.isSelectable = true
+        emailField.drawsBackground = true
+        emailField.isBezeled = true
+        emailField.textColor = .controlTextColor
+
+        changeIdentityButton.isHidden = true
+    }
+
+    @objc private func changeIdentityTapped() {
+        let alert = NSAlert()
+        alert.messageText = "Change your identity?"
+        alert.informativeText = "If you change your email, you won't be able to see your previous feedback history."
+        alert.alertStyle = .warning
+        alert.addButton(withTitle: "Change")
+        alert.addButton(withTitle: "Cancel")
+
+        if alert.runModal() == .alertFirstButtonReturn {
+            store.savedEmail = nil
+            store.savedName = nil
+            store.clearTokens()
+            unlockIdentity()
+        }
     }
 
     private func addLabel(_ text: String) {
@@ -188,12 +275,17 @@ final class FeedbackFormViewController: NSViewController {
                     email: email,
                     metadata: metadata
                 )
+                // Save identity and token
+                store.savedName = name
+                store.savedEmail = email
                 store.saveToken(result.conversationToken)
+
                 spinner.stopAnimation(nil)
                 spinner.isHidden = true
                 showStatus("Feedback sent!", isError: false)
                 messageTextView.string = ""
                 updatePlaceholder()
+                lockIdentity()
                 setFormEnabled(true)
                 delegate?.feedbackFormDidSubmit(conversationToken: result.conversationToken, email: email)
             } catch {
@@ -211,8 +303,10 @@ final class FeedbackFormViewController: NSViewController {
 
     private func setFormEnabled(_ enabled: Bool) {
         categoryPopup.isEnabled = enabled
-        nameField.isEnabled = enabled
-        emailField.isEnabled = enabled
+        if !identityLocked {
+            nameField.isEnabled = enabled
+            emailField.isEnabled = enabled
+        }
         messageTextView.isEditable = enabled
         submitButton.isEnabled = enabled
     }

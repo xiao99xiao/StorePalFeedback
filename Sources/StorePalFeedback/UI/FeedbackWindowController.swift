@@ -106,16 +106,22 @@ final class FeedbackWindowController: NSWindowController, NSToolbarDelegate {
             vc = formVC
             window?.title = "Send Feedback"
             navButton.title = "My Feedbacks"
+            navButton.image = NSImage(systemSymbolName: "tray.full", accessibilityDescription: "My Feedbacks")
+            navButton.imagePosition = .imageLeading
         case .list:
             listVC.refresh()
             vc = listVC
             window?.title = "My Feedbacks"
             navButton.title = "Send Feedback"
+            navButton.image = NSImage(systemSymbolName: "square.and.pencil", accessibilityDescription: "Send Feedback")
+            navButton.imagePosition = .imageLeading
         case .detail:
             guard let detail = detailVC else { return }
             vc = detail
             window?.title = "Feedback Detail"
-            navButton.title = "← Back"
+            navButton.title = "Back"
+            navButton.image = NSImage(systemSymbolName: "chevron.left", accessibilityDescription: "Back")
+            navButton.imagePosition = .imageLeading
         }
 
         // Swap content

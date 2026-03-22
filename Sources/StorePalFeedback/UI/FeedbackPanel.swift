@@ -18,7 +18,7 @@ final class FeedbackPanel: NSPanel {
         isReleasedWhenClosed = false
         animationBehavior = .utilityWindow
 
-        minSize = NSSize(width: 420, height: 400)
+        minSize = NSSize(width: 420, height: 450)
         maxSize = NSSize(width: 600, height: 800)
 
         setContentSize(NSSize(width: 480, height: 450))

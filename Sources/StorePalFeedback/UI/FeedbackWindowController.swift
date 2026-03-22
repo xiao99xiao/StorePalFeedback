@@ -147,6 +147,7 @@ final class FeedbackWindowController: NSWindowController, NSToolbarDelegate {
 extension FeedbackWindowController: FeedbackFormDelegate {
     func feedbackFormDidSubmit(conversationToken: String, email: String) {
         listVC.userEmail = email
+        showScreen(.list)
     }
 }
 

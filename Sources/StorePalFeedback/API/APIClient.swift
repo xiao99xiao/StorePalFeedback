@@ -63,17 +63,20 @@ actor APIClient {
 
     // MARK: - Private
 
+    private func makeURL(_ path: String) -> URL {
+        // Use string concatenation to preserve query parameters — appendingPathComponent encodes ? as %3F
+        URL(string: config.baseURL.absoluteString + path)!
+    }
+
     private func get<T: Decodable & Sendable>(_ path: String) async throws -> T {
-        let url = config.baseURL.appendingPathComponent(path)
-        var request = URLRequest(url: url)
+        var request = URLRequest(url: makeURL(path))
         request.setValue("Bearer \(config.apiKey)", forHTTPHeaderField: "Authorization")
 
         return try await perform(request)
     }
 
     private func post<T: Decodable & Sendable, B: Encodable>(_ path: String, body: B) async throws -> T {
-        let url = config.baseURL.appendingPathComponent(path)
-        var request = URLRequest(url: url)
+        var request = URLRequest(url: makeURL(path))
         request.httpMethod = "POST"
         request.setValue("Bearer \(config.apiKey)", forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")

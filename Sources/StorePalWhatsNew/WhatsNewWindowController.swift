@@ -61,7 +61,7 @@ final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
         let config = WKWebViewConfiguration()
         // Inject CSS: transparent background + disable horizontal scroll
         let injectCSS = WKUserScript(
-            source: "var s=document.createElement('style');s.textContent=':root,html,body{background-color:transparent!important;overflow-x:hidden!important}';document.documentElement.appendChild(s);",
+            source: "var s=document.createElement('style');s.textContent=':root,html,body{background-color:transparent!important;overflow-x:hidden!important;margin:0!important;padding:0!important}.release-note-embed>div{padding:0!important}';document.documentElement.appendChild(s);",
             injectionTime: .atDocumentStart,
             forMainFrameOnly: true
         )

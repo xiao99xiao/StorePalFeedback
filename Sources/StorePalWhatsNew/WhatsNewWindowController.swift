@@ -26,12 +26,12 @@ final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
 
     private func makeWindow(appName: String, version: String, releaseNoteURL: URL) -> NSWindow {
         let window = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 520, height: 420),
+            contentRect: NSRect(x: 0, y: 0, width: 620, height: 340),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
         )
-        window.title = "\(appName) — What's New"
+        window.title = "What's New"
         window.isMovableByWindowBackground = true
 
         let root = NSView()
@@ -48,7 +48,7 @@ final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
         root.addSubview(iconView)
 
         // --- Right: heading ---
-        let headingLabel = NSTextField(wrappingLabelWithString: "\(appName) has been updated to version \(version)")
+        let headingLabel = NSTextField(wrappingLabelWithString: "\(appName) has been updated to version \(version).")
         headingLabel.font = .systemFont(ofSize: 13, weight: .semibold)
         headingLabel.textColor = .labelColor
         headingLabel.translatesAutoresizingMaskIntoConstraints = false

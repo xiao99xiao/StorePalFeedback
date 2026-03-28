@@ -7,7 +7,7 @@ struct ExampleApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .feedbackPanel(apiKey: "sp_live_YOUR_KEY_HERE", whatsNew: true)
+                .feedbackPanel(apiKey: "sp_live_9453de63c9a344a01ae28c9bc3336279", whatsNew: true)
                 .frame(minWidth: 400, minHeight: 350)
         }
         .commands {
@@ -37,7 +37,7 @@ struct ContentView: View {
                 .padding(.vertical, 4)
 
             Button("Show What's New") {
-                StorePalFeedback.showWhatsNew()
+                StorePalFeedback.showWhatsNew(version: "1.0.0")
             }
             .controlSize(.large)
 

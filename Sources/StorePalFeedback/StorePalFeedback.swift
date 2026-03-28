@@ -98,9 +98,11 @@ public final class StorePalFeedback {
 
     /// Manually trigger a "What's New" check, regardless of whether the version changed.
     /// Useful for a "What's New" menu item.
-    public static func showWhatsNew() {
+    ///
+    /// - Parameter version: Version to look up. Defaults to CFBundleShortVersionString.
+    public static func showWhatsNew(version: String? = nil) {
         Task { @MainActor in
-            await shared.showWhatsNewForCurrentVersion()
+            await shared.showWhatsNewForVersion(version)
         }
     }
 
@@ -127,17 +129,25 @@ public final class StorePalFeedback {
         }
     }
 
-    private func showWhatsNewForCurrentVersion() async {
-        guard let apiClient else { return }
-        let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
-        guard !currentVersion.isEmpty else { return }
+    private func showWhatsNewForVersion(_ override: String?) async {
+        guard let apiClient else {
+            print("[StorePal] Not configured — call StorePalFeedback.configure() first")
+            return
+        }
+        let version = override ?? (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "")
+        guard !version.isEmpty else {
+            print("[StorePal] Could not determine app version (CFBundleShortVersionString missing)")
+            return
+        }
 
         do {
-            if let note = try await apiClient.getReleaseNote(version: currentVersion) {
+            if let note = try await apiClient.getReleaseNote(version: version) {
                 showWhatsNewDialog(version: note.version, content: note.content)
+            } else {
+                print("[StorePal] No release note found for version \(version)")
             }
         } catch {
-            // Silently fail
+            print("[StorePal] Failed to fetch release note: \(error)")
         }
     }
 

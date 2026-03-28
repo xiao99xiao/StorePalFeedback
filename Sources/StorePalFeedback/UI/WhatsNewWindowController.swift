@@ -180,28 +180,205 @@ final class WhatsNewWindowController {
         NSWorkspace.shared.open(url)
     }
 
-    // MARK: - Markdown rendering (using AttributedString)
+    // MARK: - Markdown rendering (markdown → HTML → NSAttributedString)
 
     private static func renderMarkdown(_ markdown: String) -> NSAttributedString {
-        // macOS 13+ supports AttributedString(markdown:) natively
-        do {
-            var options = AttributedString.MarkdownParsingOptions()
-            options.interpretedSyntax = .inlineOnlyPreservingWhitespace
-            let parsed = try AttributedString(markdown: markdown, options: options)
-            let mutable = NSMutableAttributedString(parsed)
+        let html = markdownToHTML(markdown)
 
-            // Apply base styling
-            let fullRange = NSRange(location: 0, length: mutable.length)
-            mutable.addAttribute(.font, value: NSFont.systemFont(ofSize: 13), range: fullRange)
-            mutable.addAttribute(.foregroundColor, value: NSColor.labelColor, range: fullRange)
+        // Wrap in styled HTML so NSAttributedString picks up fonts/colors
+        let styledHTML = """
+        <html>
+        <head><style>
+        body {
+            font-family: -apple-system, sans-serif;
+            font-size: 13px;
+            color: \(NSColor.labelColor.cssHex);
+            line-height: 1.5;
+        }
+        h1 { font-size: 17px; font-weight: bold; margin: 12px 0 4px; }
+        h2 { font-size: 15px; font-weight: bold; margin: 10px 0 4px; }
+        h3 { font-size: 14px; font-weight: 600; margin: 8px 0 4px; }
+        p { margin: 0 0 8px; }
+        ul, ol { padding-left: 20px; margin: 0 0 8px; }
+        li { margin: 2px 0; }
+        blockquote {
+            border-left: 3px solid \(NSColor.separatorColor.cssHex);
+            padding-left: 10px;
+            margin: 4px 0 8px 0;
+            color: \(NSColor.secondaryLabelColor.cssHex);
+        }
+        code {
+            font-family: Menlo, monospace;
+            font-size: 12px;
+            background: \(NSColor.quaternaryLabelColor.cssHex);
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+        pre {
+            background: \(NSColor.quaternaryLabelColor.cssHex);
+            padding: 8px;
+            border-radius: 4px;
+            overflow-x: auto;
+            margin: 4px 0 8px;
+        }
+        pre code { background: none; padding: 0; }
+        a { color: \(NSColor.controlAccentColor.cssHex); }
+        del { color: \(NSColor.tertiaryLabelColor.cssHex); }
+        </style></head>
+        <body>\(html)</body>
+        </html>
+        """
 
-            return mutable
-        } catch {
-            // Fallback: plain text
+        guard let data = styledHTML.data(using: .utf8),
+              let attributed = NSAttributedString(
+                html: data,
+                options: [.characterEncoding: String.Encoding.utf8.rawValue],
+                documentAttributes: nil
+              ) else {
             return NSAttributedString(string: markdown, attributes: [
                 .font: NSFont.systemFont(ofSize: 13),
                 .foregroundColor: NSColor.labelColor,
             ])
         }
+
+        return attributed
+    }
+
+    /// Minimal markdown → HTML converter covering common release note syntax.
+    private static func markdownToHTML(_ markdown: String) -> String {
+        var html = ""
+        var inList = false
+        var listType = ""
+        var inCodeBlock = false
+
+        for line in markdown.components(separatedBy: "\n") {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+
+            // Fenced code blocks
+            if trimmed.hasPrefix("```") {
+                if inCodeBlock {
+                    html += "</code></pre>"
+                    inCodeBlock = false
+                } else {
+                    closeList(&html, &inList, &listType)
+                    html += "<pre><code>"
+                    inCodeBlock = true
+                }
+                continue
+            }
+            if inCodeBlock {
+                html += escapeHTML(line) + "\n"
+                continue
+            }
+
+            // Close list if current line is not a list item
+            let isUnorderedItem = trimmed.hasPrefix("- ") || trimmed.hasPrefix("* ")
+            let isOrderedItem = trimmed.range(of: #"^\d+\.\s"#, options: .regularExpression) != nil
+            if inList && !isUnorderedItem && !isOrderedItem {
+                closeList(&html, &inList, &listType)
+            }
+
+            if trimmed.isEmpty {
+                if !inList { html += "<br>" }
+                continue
+            }
+
+            // Headings
+            if trimmed.hasPrefix("### ") {
+                closeList(&html, &inList, &listType)
+                html += "<h3>\(inlineFormat(String(trimmed.dropFirst(4))))</h3>"
+            } else if trimmed.hasPrefix("## ") {
+                closeList(&html, &inList, &listType)
+                html += "<h2>\(inlineFormat(String(trimmed.dropFirst(3))))</h2>"
+            } else if trimmed.hasPrefix("# ") {
+                closeList(&html, &inList, &listType)
+                html += "<h1>\(inlineFormat(String(trimmed.dropFirst(2))))</h1>"
+            }
+            // Blockquote
+            else if trimmed.hasPrefix("> ") {
+                closeList(&html, &inList, &listType)
+                html += "<blockquote><p>\(inlineFormat(String(trimmed.dropFirst(2))))</p></blockquote>"
+            }
+            // Unordered list
+            else if trimmed.hasPrefix("- ") || trimmed.hasPrefix("* ") {
+                if !inList || listType != "ul" {
+                    closeList(&html, &inList, &listType)
+                    html += "<ul>"
+                    inList = true
+                    listType = "ul"
+                }
+                html += "<li>\(inlineFormat(String(trimmed.dropFirst(2))))</li>"
+            }
+            // Ordered list
+            else if let match = trimmed.range(of: #"^\d+\.\s+"#, options: .regularExpression) {
+                if !inList || listType != "ol" {
+                    closeList(&html, &inList, &listType)
+                    html += "<ol>"
+                    inList = true
+                    listType = "ol"
+                }
+                html += "<li>\(inlineFormat(String(trimmed[match.upperBound...])))</li>"
+            }
+            // Horizontal rule
+            else if trimmed == "---" || trimmed == "***" || trimmed == "___" {
+                closeList(&html, &inList, &listType)
+                html += "<hr>"
+            }
+            // Paragraph
+            else {
+                html += "<p>\(inlineFormat(trimmed))</p>"
+            }
+        }
+
+        closeList(&html, &inList, &listType)
+        if inCodeBlock { html += "</code></pre>" }
+
+        return html
+    }
+
+    private static func closeList(_ html: inout String, _ inList: inout Bool, _ listType: inout String) {
+        if inList {
+            html += listType == "ol" ? "</ol>" : "</ul>"
+            inList = false
+            listType = ""
+        }
+    }
+
+    /// Apply inline formatting: bold, italic, strikethrough, inline code, links, images
+    private static func inlineFormat(_ text: String) -> String {
+        var s = escapeHTML(text)
+        // Inline code (before other formatting to avoid conflicts)
+        s = s.replacingOccurrences(of: #"`(.+?)`"#, with: "<code>$1</code>", options: .regularExpression)
+        // Images: ![alt](url)
+        s = s.replacingOccurrences(of: #"!\[([^\]]*)\]\(([^)]+)\)"#, with: "<img src=\"$2\" alt=\"$1\" style=\"max-width:100%\">", options: .regularExpression)
+        // Links: [text](url)
+        s = s.replacingOccurrences(of: #"\[([^\]]+)\]\(([^)]+)\)"#, with: "<a href=\"$2\">$1</a>", options: .regularExpression)
+        // Bold: **text** or __text__
+        s = s.replacingOccurrences(of: #"\*\*(.+?)\*\*"#, with: "<strong>$1</strong>", options: .regularExpression)
+        s = s.replacingOccurrences(of: #"__(.+?)__"#, with: "<strong>$1</strong>", options: .regularExpression)
+        // Italic: *text* or _text_
+        s = s.replacingOccurrences(of: #"(?<!\*)\*(?!\*)(.+?)(?<!\*)\*(?!\*)"#, with: "<em>$1</em>", options: .regularExpression)
+        s = s.replacingOccurrences(of: #"(?<!_)_(?!_)(.+?)(?<!_)_(?!_)"#, with: "<em>$1</em>", options: .regularExpression)
+        // Strikethrough: ~~text~~
+        s = s.replacingOccurrences(of: #"~~(.+?)~~"#, with: "<del>$1</del>", options: .regularExpression)
+        return s
+    }
+
+    private static func escapeHTML(_ text: String) -> String {
+        text.replacingOccurrences(of: "&", with: "&amp;")
+            .replacingOccurrences(of: "<", with: "&lt;")
+            .replacingOccurrences(of: ">", with: "&gt;")
+    }
+}
+
+// MARK: - NSColor CSS helper
+
+private extension NSColor {
+    var cssHex: String {
+        guard let rgb = usingColorSpace(.sRGB) else { return "#000000" }
+        let r = Int(rgb.redComponent * 255)
+        let g = Int(rgb.greenComponent * 255)
+        let b = Int(rgb.blueComponent * 255)
+        return String(format: "#%02x%02x%02x", r, g, b)
     }
 }

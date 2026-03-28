@@ -122,7 +122,7 @@ public final class StorePalFeedback {
 
         do {
             if let note = try await apiClient.getReleaseNote(version: currentVersion) {
-                showWhatsNewDialog(version: note.version, content: note.content)
+                showWhatsNewDialog(note)
             }
         } catch {
             // Silently fail — what's new is a nice-to-have, not critical
@@ -142,7 +142,7 @@ public final class StorePalFeedback {
 
         do {
             if let note = try await apiClient.getReleaseNote(version: version) {
-                showWhatsNewDialog(version: note.version, content: note.content)
+                showWhatsNewDialog(note)
             } else {
                 print("[StorePal] No release note found for version \(version)")
             }
@@ -151,11 +151,17 @@ public final class StorePalFeedback {
         }
     }
 
-    private func showWhatsNewDialog(version: String, content: String) {
+    private func showWhatsNewDialog(_ note: ReleaseNote) {
         if whatsNewController == nil {
             whatsNewController = WhatsNewWindowController()
         }
-        whatsNewController?.show(version: version, content: content)
+        let releasesURL = note.releasesUrl.flatMap { URL(string: $0) }
+        whatsNewController?.show(
+            version: note.version,
+            content: note.content,
+            appName: note.appName,
+            releaseNotesURL: releasesURL
+        )
     }
 
     // MARK: - Private

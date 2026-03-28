@@ -59,13 +59,13 @@ final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
 
         // --- WebView ---
         let config = WKWebViewConfiguration()
-        // Inject CSS to force transparent background before page renders
-        let transparencyScript = WKUserScript(
-            source: "var s=document.createElement('style');s.textContent=':root,html,body{background-color:transparent!important}';document.documentElement.appendChild(s);",
+        // Inject CSS: transparent background + disable horizontal scroll
+        let injectCSS = WKUserScript(
+            source: "var s=document.createElement('style');s.textContent=':root,html,body{background-color:transparent!important;overflow-x:hidden!important}';document.documentElement.appendChild(s);",
             injectionTime: .atDocumentStart,
             forMainFrameOnly: true
         )
-        config.userContentController.addUserScript(transparencyScript)
+        config.userContentController.addUserScript(injectCSS)
 
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.translatesAutoresizingMaskIntoConstraints = false
@@ -73,12 +73,6 @@ final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
         if #available(macOS 13.3, *) { webView.isInspectable = false }
         webView.setValue(false, forKey: "drawsBackground")
         webView.underPageBackgroundColor = .clear
-        // Disable horizontal scrolling and bounce
-        if let scrollView = webView.enclosingScrollView ?? webView.subviews.compactMap({ $0 as? NSScrollView }).first {
-            scrollView.hasHorizontalScroller = false
-            scrollView.horizontalScrollElasticity = .none
-            scrollView.verticalScrollElasticity = .none
-        }
         webView.load(URLRequest(url: releaseNoteURL))
         root.addSubview(webView)
 

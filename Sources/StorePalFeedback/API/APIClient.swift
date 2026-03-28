@@ -61,6 +61,17 @@ actor APIClient {
         return try await post("/api/v1/conversations/\(token)/reply", body: ReplyBody(message: message))
     }
 
+    // MARK: - Release Notes
+
+    func getReleaseNote(version: String) async throws -> ReleaseNote? {
+        let encoded = version.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? version
+        do {
+            return try await get("/api/v1/releases?version=\(encoded)")
+        } catch StorePalError.apiError(let e) where e.code == "NOT_FOUND" || e.code == "HTTP_404" {
+            return nil
+        }
+    }
+
     // MARK: - Private
 
     private func makeURL(_ path: String) -> URL {

@@ -21,9 +21,13 @@ public final class StorePalFeedback {
     private var apiClient: APIClient?
     private var store: ConversationStore?
     private var windowController: FeedbackWindowController?
+    private var whatsNewController: WhatsNewWindowController?
+    private var whatsNewEnabled = false
 
     /// Pre-select a feedback category when the form opens.
     public static var defaultCategory: String?
+
+    private static let lastSeenVersionKey = "com.storepal.lastSeenVersion"
 
     private init() {}
 
@@ -37,10 +41,20 @@ public final class StorePalFeedback {
     ///   - userEmail: Current user's email (optional — user can fill it in the form).
     ///   - userName: Current user's name (optional — user can fill it in the form).
     ///   - baseURL: Custom API base URL (default: https://storepal.app).
+    /// Configure the SDK with your StorePal API key.
+    /// Call this once, typically in `applicationDidFinishLaunching`.
+    ///
+    /// - Parameters:
+    ///   - apiKey: Your StorePal API key (`sp_live_` prefix).
+    ///   - userEmail: Current user's email (optional — user can fill it in the form).
+    ///   - userName: Current user's name (optional — user can fill it in the form).
+    ///   - whatsNew: Enable "What's New" prompt — shows release notes on version upgrade.
+    ///   - baseURL: Custom API base URL (default: https://storepal.app).
     public static func configure(
         apiKey: String,
         userEmail: String? = nil,
         userName: String? = nil,
+        whatsNew: Bool = false,
         baseURL: URL = URL(string: "https://storepal.app")!
     ) {
         let config = StorePalConfiguration(
@@ -52,6 +66,13 @@ public final class StorePalFeedback {
         shared.config = config
         shared.apiClient = APIClient(configuration: config)
         shared.store = ConversationStore(apiKey: apiKey)
+        shared.whatsNewEnabled = whatsNew
+
+        if whatsNew {
+            Task { @MainActor in
+                await shared.checkWhatsNew()
+            }
+        }
     }
 
     // MARK: - Show / Hide
@@ -71,6 +92,60 @@ public final class StorePalFeedback {
     public static func toggle() {
         shared.ensureWindow()
         shared.windowController?.togglePanel()
+    }
+
+    // MARK: - What's New
+
+    /// Manually trigger a "What's New" check, regardless of whether the version changed.
+    /// Useful for a "What's New" menu item.
+    public static func showWhatsNew() {
+        Task { @MainActor in
+            await shared.showWhatsNewForCurrentVersion()
+        }
+    }
+
+    private func checkWhatsNew() async {
+        guard let apiClient else { return }
+
+        let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+        guard !currentVersion.isEmpty else { return }
+
+        let lastSeen = UserDefaults.standard.string(forKey: Self.lastSeenVersionKey) ?? ""
+
+        // Save current version immediately so we don't re-prompt on next launch
+        UserDefaults.standard.set(currentVersion, forKey: Self.lastSeenVersionKey)
+
+        // Only show if version actually changed (not on first install)
+        guard !lastSeen.isEmpty, currentVersion != lastSeen else { return }
+
+        do {
+            if let note = try await apiClient.getReleaseNote(version: currentVersion) {
+                showWhatsNewDialog(version: note.version, content: note.content)
+            }
+        } catch {
+            // Silently fail — what's new is a nice-to-have, not critical
+        }
+    }
+
+    private func showWhatsNewForCurrentVersion() async {
+        guard let apiClient else { return }
+        let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+        guard !currentVersion.isEmpty else { return }
+
+        do {
+            if let note = try await apiClient.getReleaseNote(version: currentVersion) {
+                showWhatsNewDialog(version: note.version, content: note.content)
+            }
+        } catch {
+            // Silently fail
+        }
+    }
+
+    private func showWhatsNewDialog(version: String, content: String) {
+        if whatsNewController == nil {
+            whatsNewController = WhatsNewWindowController()
+        }
+        whatsNewController?.show(version: version, content: content)
     }
 
     // MARK: - Private

@@ -74,6 +74,15 @@ struct UnreadResponse: Decodable, Sendable {
     let unreadCount: Int
 }
 
+// MARK: - Release Notes
+
+public struct ReleaseNote: Decodable, Sendable {
+    public let id: String
+    public let version: String
+    public let content: String
+    public let publishedAt: String
+}
+
 // MARK: - Category helpers
 
 public enum FeedbackCategory: String, CaseIterable, Sendable {

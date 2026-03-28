@@ -18,6 +18,7 @@ struct FeedbackPanelModifier: ViewModifier {
     let apiKey: String
     let userEmail: String?
     let userName: String?
+    let whatsNew: Bool
 
     func body(content: Content) -> some View {
         content
@@ -25,7 +26,8 @@ struct FeedbackPanelModifier: ViewModifier {
                 StorePalFeedback.configure(
                     apiKey: apiKey,
                     userEmail: userEmail,
-                    userName: userName
+                    userName: userName,
+                    whatsNew: whatsNew
                 )
             }
     }
@@ -38,11 +40,13 @@ extension View {
     ///   - apiKey: Your StorePal API key (`sp_live_` prefix).
     ///   - userEmail: Optional user email (user can fill in the form).
     ///   - userName: Optional user name (user can fill in the form).
+    ///   - whatsNew: Show "What's New" dialog when the app updates to a new version (default: false).
     public func feedbackPanel(
         apiKey: String,
         userEmail: String? = nil,
-        userName: String? = nil
+        userName: String? = nil,
+        whatsNew: Bool = false
     ) -> some View {
-        modifier(FeedbackPanelModifier(apiKey: apiKey, userEmail: userEmail, userName: userName))
+        modifier(FeedbackPanelModifier(apiKey: apiKey, userEmail: userEmail, userName: userName, whatsNew: whatsNew))
     }
 }

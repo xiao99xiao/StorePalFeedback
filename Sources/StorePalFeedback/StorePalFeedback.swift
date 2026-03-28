@@ -21,13 +21,9 @@ public final class StorePalFeedback {
     private var apiClient: APIClient?
     private var store: ConversationStore?
     private var windowController: FeedbackWindowController?
-    private var whatsNewController: WhatsNewWindowController?
-    private var whatsNewEnabled = false
 
     /// Pre-select a feedback category when the form opens.
     public static var defaultCategory: String?
-
-    private static let lastSeenVersionKey = "com.storepal.lastSeenVersion"
 
     private init() {}
 
@@ -41,20 +37,10 @@ public final class StorePalFeedback {
     ///   - userEmail: Current user's email (optional — user can fill it in the form).
     ///   - userName: Current user's name (optional — user can fill it in the form).
     ///   - baseURL: Custom API base URL (default: https://storepal.app).
-    /// Configure the SDK with your StorePal API key.
-    /// Call this once, typically in `applicationDidFinishLaunching`.
-    ///
-    /// - Parameters:
-    ///   - apiKey: Your StorePal API key (`sp_live_` prefix).
-    ///   - userEmail: Current user's email (optional — user can fill it in the form).
-    ///   - userName: Current user's name (optional — user can fill it in the form).
-    ///   - whatsNew: Enable "What's New" prompt — shows release notes on version upgrade.
-    ///   - baseURL: Custom API base URL (default: https://storepal.app).
     public static func configure(
         apiKey: String,
         userEmail: String? = nil,
         userName: String? = nil,
-        whatsNew: Bool = false,
         baseURL: URL = URL(string: "https://storepal.app")!
     ) {
         let config = StorePalConfiguration(
@@ -66,13 +52,6 @@ public final class StorePalFeedback {
         shared.config = config
         shared.apiClient = APIClient(configuration: config)
         shared.store = ConversationStore(apiKey: apiKey)
-        shared.whatsNewEnabled = whatsNew
-
-        if whatsNew {
-            Task { @MainActor in
-                await shared.checkWhatsNew()
-            }
-        }
     }
 
     // MARK: - Show / Hide
@@ -94,74 +73,21 @@ public final class StorePalFeedback {
         shared.windowController?.togglePanel()
     }
 
-    // MARK: - What's New
+    // MARK: - Release Notes (used by StorePalWhatsNew)
 
-    /// Manually trigger a "What's New" check, regardless of whether the version changed.
-    /// Useful for a "What's New" menu item.
-    ///
-    /// - Parameter version: Version to look up. Defaults to CFBundleShortVersionString.
-    public static func showWhatsNew(version: String? = nil) {
-        Task { @MainActor in
-            await shared.showWhatsNewForVersion(version)
-        }
-    }
-
-    private func checkWhatsNew() async {
-        guard let apiClient else { return }
-
-        let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
-        guard !currentVersion.isEmpty else { return }
-
-        let lastSeen = UserDefaults.standard.string(forKey: Self.lastSeenVersionKey) ?? ""
-
-        // Save current version immediately so we don't re-prompt on next launch
-        UserDefaults.standard.set(currentVersion, forKey: Self.lastSeenVersionKey)
-
-        // Only show if version actually changed (not on first install)
-        guard !lastSeen.isEmpty, currentVersion != lastSeen else { return }
-
-        do {
-            if let note = try await apiClient.getReleaseNote(version: currentVersion) {
-                showWhatsNewDialog(note)
-            }
-        } catch {
-            // Silently fail — what's new is a nice-to-have, not critical
-        }
-    }
-
-    private func showWhatsNewForVersion(_ override: String?) async {
-        guard let apiClient else {
+    /// Fetch a release note for a specific version. Returns nil if not found.
+    /// Used by `StorePalWhatsNew` — you don't typically call this directly.
+    public static func fetchReleaseNote(version: String) async -> ReleaseNote? {
+        guard let apiClient = shared.apiClient else {
             print("[StorePal] Not configured — call StorePalFeedback.configure() first")
-            return
+            return nil
         }
-        let version = override ?? (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "")
-        guard !version.isEmpty else {
-            print("[StorePal] Could not determine app version (CFBundleShortVersionString missing)")
-            return
-        }
-
         do {
-            if let note = try await apiClient.getReleaseNote(version: version) {
-                showWhatsNewDialog(note)
-            } else {
-                print("[StorePal] No release note found for version \(version)")
-            }
+            return try await apiClient.getReleaseNote(version: version)
         } catch {
             print("[StorePal] Failed to fetch release note: \(error)")
+            return nil
         }
-    }
-
-    private func showWhatsNewDialog(_ note: ReleaseNote) {
-        if whatsNewController == nil {
-            whatsNewController = WhatsNewWindowController()
-        }
-        let releasesURL = note.releasesUrl.flatMap { URL(string: $0) }
-        whatsNewController?.show(
-            version: note.version,
-            content: note.content,
-            appName: note.appName,
-            releaseNotesURL: releasesURL
-        )
     }
 
     // MARK: - Private

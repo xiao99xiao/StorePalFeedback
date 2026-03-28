@@ -1,13 +1,18 @@
 import SwiftUI
 import StorePalFeedback
 import StorePalSwiftUI
+import StorePalWhatsNew
 
 @main
 struct ExampleApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .feedbackPanel(apiKey: "sp_live_9453de63c9a344a01ae28c9bc3336279", whatsNew: true)
+                .feedbackPanel(apiKey: "sp_live_9453de63c9a344a01ae28c9bc3336279")
+                .onAppear {
+                    // Auto-check for release notes on version upgrade
+                    StorePalWhatsNew.check()
+                }
                 .frame(minWidth: 400, minHeight: 350)
         }
         .commands {
@@ -37,7 +42,7 @@ struct ContentView: View {
                 .padding(.vertical, 4)
 
             Button("Show What's New") {
-                StorePalFeedback.showWhatsNew(version: "1.0.0")
+                StorePalWhatsNew.show(version: "1.0.0")
             }
             .controlSize(.large)
 

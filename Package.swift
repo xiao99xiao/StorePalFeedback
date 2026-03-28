@@ -8,6 +8,10 @@ let package = Package(
     products: [
         .library(name: "StorePalFeedback", targets: ["StorePalFeedback"]),
         .library(name: "StorePalSwiftUI", targets: ["StorePalSwiftUI"]),
+        .library(name: "StorePalWhatsNew", targets: ["StorePalWhatsNew"]),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/objecthub/swift-markdownkit.git", from: "1.1.8"),
     ],
     targets: [
         .target(
@@ -15,5 +19,9 @@ let package = Package(
             resources: [.process("Resources")]
         ),
         .target(name: "StorePalSwiftUI", dependencies: ["StorePalFeedback"]),
+        .target(name: "StorePalWhatsNew", dependencies: [
+            "StorePalFeedback",
+            .product(name: "MarkdownKit", package: "swift-markdownkit"),
+        ]),
     ]
 )

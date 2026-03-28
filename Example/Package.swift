@@ -12,6 +12,7 @@ let package = Package(
             name: "StorePalExample",
             dependencies: [
                 .product(name: "StorePalSwiftUI", package: "StorePalFeedback"),
+                .product(name: "StorePalWhatsNew", package: "StorePalFeedback"),
             ],
             path: "StorePalExample"
         ),

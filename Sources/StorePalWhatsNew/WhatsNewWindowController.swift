@@ -1,27 +1,22 @@
 import AppKit
-import MarkdownKit
+import WebKit
 
-/// Displays a "What's New" dialog with app icon, update message,
-/// and release notes rendered via MarkdownKit.
+/// Displays a "What's New" dialog with app icon, update heading,
+/// and a WKWebView loading the server-rendered release note page.
 @MainActor
-final class WhatsNewWindowController {
+final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
 
     private var window: NSWindow?
     private var releaseNotesURL: URL?
 
-    func show(version: String, content: String, appName: String? = nil, releaseNotesURL: URL? = nil) {
+    func show(version: String, releaseNoteURL: URL, appName: String, releaseNotesURL: URL? = nil) {
         if let existing = window, existing.isVisible {
             existing.makeKeyAndOrderFront(nil)
             return
         }
 
-        let resolvedName = appName
-            ?? Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String
-            ?? Bundle.main.infoDictionary?["CFBundleName"] as? String
-            ?? "This App"
-
         self.releaseNotesURL = releaseNotesURL
-        let window = makeWindow(appName: resolvedName, version: version, content: content)
+        let window = makeWindow(appName: appName, version: version, releaseNoteURL: releaseNoteURL)
         self.window = window
         window.center()
         window.makeKeyAndOrderFront(nil)
@@ -29,9 +24,9 @@ final class WhatsNewWindowController {
 
     // MARK: - Build window
 
-    private func makeWindow(appName: String, version: String, content: String) -> NSWindow {
+    private func makeWindow(appName: String, version: String, releaseNoteURL: URL) -> NSWindow {
         let window = NSPanel(
-            contentRect: NSRect(x: 0, y: 0, width: 560, height: 400),
+            contentRect: NSRect(x: 0, y: 0, width: 520, height: 420),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
@@ -60,39 +55,21 @@ final class WhatsNewWindowController {
         headingLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         root.addSubview(headingLabel)
 
-        // --- Scroll view with rendered markdown ---
-        let scrollView = NSScrollView()
-        scrollView.hasVerticalScroller = true
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
-        scrollView.drawsBackground = true
-        scrollView.backgroundColor = .textBackgroundColor
-        scrollView.borderType = .bezelBorder
-        scrollView.scrollerStyle = .overlay
-        scrollView.autohidesScrollers = true
-
-        let textView = NSTextView()
-        textView.isEditable = false
-        textView.isSelectable = true
-        textView.drawsBackground = false
-        textView.textContainerInset = NSSize(width: 10, height: 10)
-        textView.textContainer?.lineFragmentPadding = 4
-        textView.textContainer?.widthTracksTextView = true
-        textView.isVerticallyResizable = true
-        textView.isHorizontallyResizable = false
-        textView.isAutomaticLinkDetectionEnabled = true
-
-        let rendered = Self.renderMarkdown(content)
-        textView.textStorage?.setAttributedString(rendered)
-
-        scrollView.documentView = textView
-        root.addSubview(scrollView)
+        // --- WebView ---
+        let config = WKWebViewConfiguration()
+        let webView = WKWebView(frame: .zero, configuration: config)
+        webView.translatesAutoresizingMaskIntoConstraints = false
+        webView.navigationDelegate = self
+        if #available(macOS 13.3, *) { webView.isInspectable = false }
+        webView.setValue(false, forKey: "drawsBackground")
+        webView.load(URLRequest(url: releaseNoteURL))
+        root.addSubview(webView)
 
         // --- Bottom bar ---
         let bottomBar = NSView()
         bottomBar.translatesAutoresizingMaskIntoConstraints = false
         root.addSubview(bottomBar)
 
-        // "View all release notes" link (left)
         if releaseNotesURL != nil {
             let linkButton = NSButton(title: "View all release notes", target: self, action: #selector(openReleaseNotes))
             linkButton.bezelStyle = .inline
@@ -107,7 +84,6 @@ final class WhatsNewWindowController {
             ])
         }
 
-        // "OK" button (right)
         let okButton = NSButton(title: "OK", target: self, action: #selector(dismiss))
         okButton.bezelStyle = .rounded
         okButton.keyEquivalent = "\r"
@@ -133,10 +109,10 @@ final class WhatsNewWindowController {
             headingLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: gap),
             headingLabel.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -padding),
 
-            scrollView.topAnchor.constraint(equalTo: headingLabel.bottomAnchor, constant: 12),
-            scrollView.leadingAnchor.constraint(equalTo: headingLabel.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -padding),
-            scrollView.bottomAnchor.constraint(equalTo: bottomBar.topAnchor, constant: -12),
+            webView.topAnchor.constraint(equalTo: headingLabel.bottomAnchor, constant: 12),
+            webView.leadingAnchor.constraint(equalTo: headingLabel.leadingAnchor),
+            webView.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -padding),
+            webView.bottomAnchor.constraint(equalTo: bottomBar.topAnchor, constant: -8),
 
             bottomBar.leadingAnchor.constraint(equalTo: headingLabel.leadingAnchor),
             bottomBar.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -padding),
@@ -158,29 +134,15 @@ final class WhatsNewWindowController {
         NSWorkspace.shared.open(url)
     }
 
-    // MARK: - Markdown rendering via MarkdownKit
+    // MARK: - WKNavigationDelegate
 
-    private static func renderMarkdown(_ markdown: String) -> NSAttributedString {
-        let doc = MarkdownParser.standard.parse(markdown)
-        let labelHex = NSColor.labelColor.hexString
-        let generator = AttributedStringGenerator(
-            fontSize: 13,
-            fontFamily: "-apple-system, Helvetica, Arial, sans-serif",
-            fontColor: labelHex,
-            h1Color: labelHex,
-            h2Color: labelHex,
-            h3Color: labelHex
-        )
-        return generator.generate(doc: doc) ?? NSAttributedString(string: markdown)
-    }
-}
-
-private extension NSColor {
-    var hexString: String {
-        guard let rgb = usingColorSpace(.sRGB) else { return "#000000" }
-        return String(format: "#%02x%02x%02x",
-                      Int(rgb.redComponent * 255),
-                      Int(rgb.greenComponent * 255),
-                      Int(rgb.blueComponent * 255))
+    // Open links in the default browser, not inside the WebView
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+        if navigationAction.navigationType == .linkActivated, let url = navigationAction.request.url {
+            NSWorkspace.shared.open(url)
+            decisionHandler(.cancel)
+        } else {
+            decisionHandler(.allow)
+        }
     }
 }

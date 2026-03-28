@@ -72,14 +72,24 @@ public final class StorePalWhatsNew {
             return
         }
 
+        guard let embedUrlString = note.releaseNoteUrl, let embedURL = URL(string: embedUrlString) else {
+            print("[StorePal] No release note URL available for version \(v)")
+            return
+        }
+
+        let appName = note.appName
+            ?? Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String
+            ?? Bundle.main.infoDictionary?["CFBundleName"] as? String
+            ?? "This App"
+
         if windowController == nil {
             windowController = WhatsNewWindowController()
         }
         let releasesURL = note.releasesUrl.flatMap { URL(string: $0) }
         windowController?.show(
             version: note.version,
-            content: note.content,
-            appName: note.appName,
+            releaseNoteURL: embedURL,
+            appName: appName,
             releaseNotesURL: releasesURL
         )
     }

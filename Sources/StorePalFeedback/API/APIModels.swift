@@ -83,6 +83,7 @@ public struct ReleaseNote: Decodable, Sendable {
     public let publishedAt: String
     public let appName: String?
     public let releasesUrl: String?
+    public let releaseNoteUrl: String?
 }
 
 // MARK: - Category helpers

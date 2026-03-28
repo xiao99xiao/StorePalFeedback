@@ -64,6 +64,7 @@ final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
         webView.navigationDelegate = self
         if #available(macOS 13.3, *) { webView.isInspectable = false }
         webView.setValue(false, forKey: "drawsBackground")
+        webView.underPageBackgroundColor = .clear
         // Disable horizontal scrolling and bounce
         if let scrollView = webView.enclosingScrollView ?? webView.subviews.compactMap({ $0 as? NSScrollView }).first {
             scrollView.hasHorizontalScroller = false

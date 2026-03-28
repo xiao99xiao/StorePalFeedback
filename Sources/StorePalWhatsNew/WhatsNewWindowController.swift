@@ -59,6 +59,14 @@ final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
 
         // --- WebView ---
         let config = WKWebViewConfiguration()
+        // Inject CSS to force transparent background before page renders
+        let transparencyScript = WKUserScript(
+            source: "var s=document.createElement('style');s.textContent=':root,html,body{background-color:transparent!important}';document.documentElement.appendChild(s);",
+            injectionTime: .atDocumentStart,
+            forMainFrameOnly: true
+        )
+        config.userContentController.addUserScript(transparencyScript)
+
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.translatesAutoresizingMaskIntoConstraints = false
         webView.navigationDelegate = self

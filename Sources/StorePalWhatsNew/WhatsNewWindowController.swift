@@ -11,6 +11,7 @@ final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
 
     func show(version: String, releaseNoteURL: URL, appName: String, releaseNotesURL: URL? = nil) {
         if let existing = window, existing.isVisible {
+            NSApp.activate(ignoringOtherApps: true)
             existing.makeKeyAndOrderFront(nil)
             return
         }
@@ -19,6 +20,7 @@ final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
         let window = makeWindow(appName: appName, version: version, releaseNoteURL: releaseNoteURL)
         self.window = window
         window.center()
+        NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
     }
 

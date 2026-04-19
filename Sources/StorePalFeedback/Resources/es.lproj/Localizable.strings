@@ -29,3 +29,14 @@
 "success.subtitle" = "Hemos recibido tu comentario. Te contactaremos si es necesario.";
 "success.send_another" = "Enviar otro";
 "success.close" = "Cerrar";
+
+/* Attachments */
+"form.attach" = "Adjuntar";
+"form.attach.hint" = "Imágenes, PDF o .log — hasta 3 archivos, 5 MB cada uno";
+"form.attach.choose" = "Elegir";
+"form.attach.remove" = "Quitar adjunto";
+"form.attach.max_files" = "Máximo %d adjuntos.";
+"form.attach.too_large" = "%@ supera los 5 MB.";
+"form.attach.total_too_large" = "El total de adjuntos supera los 10 MB.";
+"form.attach.read_failed" = "No se pudo leer el archivo seleccionado.";
+"form.attach.uploading" = "Subiendo adjunto %d de %d…";

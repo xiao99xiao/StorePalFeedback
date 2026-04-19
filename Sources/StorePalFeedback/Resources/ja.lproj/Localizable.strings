@@ -29,3 +29,14 @@
 "success.subtitle" = "フィードバックを受け付けました。必要に応じてご連絡いたします。";
 "success.send_another" = "別のフィードバックを送信";
 "success.close" = "閉じる";
+
+/* Attachments */
+"form.attach" = "添付";
+"form.attach.hint" = "画像・PDF・.log ― 最大3ファイル、各5MBまで";
+"form.attach.choose" = "選択";
+"form.attach.remove" = "添付を削除";
+"form.attach.max_files" = "添付は最大%d件までです。";
+"form.attach.too_large" = "%@ は 5MB を超えています。";
+"form.attach.total_too_large" = "添付の合計が 10MB を超えています。";
+"form.attach.read_failed" = "選択したファイルを読み込めませんでした。";
+"form.attach.uploading" = "添付をアップロード中 %d/%d…";

@@ -29,3 +29,14 @@
 "success.subtitle" = "Your feedback has been received. We'll review it and get back to you if needed.";
 "success.send_another" = "Send Another";
 "success.close" = "Close";
+
+/* Attachments */
+"form.attach" = "Attach";
+"form.attach.hint" = "Images, PDF, or .log — up to 3 files, 5 MB each";
+"form.attach.choose" = "Choose";
+"form.attach.remove" = "Remove attachment";
+"form.attach.max_files" = "Maximum %d attachments.";
+"form.attach.too_large" = "%@ is larger than 5 MB.";
+"form.attach.total_too_large" = "Total attachments exceed 10 MB.";
+"form.attach.read_failed" = "Couldn't read the selected file.";
+"form.attach.uploading" = "Uploading attachment %d of %d…";

@@ -27,16 +27,53 @@ actor APIClient {
         message: String,
         name: String,
         email: String,
-        metadata: [String: String]? = nil
+        metadata: [String: String]? = nil,
+        attachmentIds: [String]? = nil
     ) async throws -> FeedbackCreated {
         let body = SubmitFeedbackRequest(
             name: name,
             email: email,
             category: category,
             message: message,
-            metadata: metadata
+            metadata: metadata,
+            attachmentIds: (attachmentIds?.isEmpty ?? true) ? nil : attachmentIds
         )
         return try await post("/api/v1/feedback", body: body)
+    }
+
+    // MARK: - Attachments
+
+    /// Upload a single file as an attachment. The returned `attachmentId` must be passed
+    /// into the next `submitFeedback` / `postReply` call within a few minutes to bind it.
+    /// Unbound attachments are garbage-collected after one hour.
+    ///
+    /// Pro plan required. Max 5 MB per file; max 3 attachments per submission.
+    /// Allowed types: PNG, JPEG, GIF, WebP, PDF, plain text, log files.
+    func uploadAttachment(
+        data: Data,
+        fileName: String,
+        mimeType: String
+    ) async throws -> AttachmentUploaded {
+        let boundary = "StorePalBoundary-\(UUID().uuidString)"
+        var body = Data()
+
+        func appendString(_ s: String) {
+            if let d = s.data(using: .utf8) { body.append(d) }
+        }
+
+        appendString("--\(boundary)\r\n")
+        appendString("Content-Disposition: form-data; name=\"file\"; filename=\"\(fileName)\"\r\n")
+        appendString("Content-Type: \(mimeType)\r\n\r\n")
+        body.append(data)
+        appendString("\r\n--\(boundary)--\r\n")
+
+        var request = URLRequest(url: makeURL("/api/v1/feedback/attachments"))
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(config.apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+        request.httpBody = body
+
+        return try await perform(request)
     }
 
     // MARK: - Conversations
@@ -56,9 +93,20 @@ actor APIClient {
         return response.unreadCount
     }
 
-    func postReply(token: String, message: String) async throws -> Reply {
-        struct ReplyBody: Encodable { let message: String }
-        return try await post("/api/v1/conversations/\(token)/reply", body: ReplyBody(message: message))
+    func postReply(
+        token: String,
+        message: String,
+        attachmentIds: [String]? = nil
+    ) async throws -> Reply {
+        struct ReplyBody: Encodable {
+            let message: String
+            let attachmentIds: [String]?
+        }
+        let body = ReplyBody(
+            message: message,
+            attachmentIds: (attachmentIds?.isEmpty ?? true) ? nil : attachmentIds
+        )
+        return try await post("/api/v1/conversations/\(token)/reply", body: body)
     }
 
     // MARK: - Release Notes

@@ -1,4 +1,18 @@
 import AppKit
+import UniformTypeIdentifiers
+
+/// A file the user has selected but not yet uploaded.
+private struct PendingAttachment {
+    let url: URL
+    let data: Data
+    let fileName: String
+    let mimeType: String
+    var sizeBytes: Int { data.count }
+}
+
+private let MAX_ATTACHMENT_SIZE = 5 * 1024 * 1024
+private let MAX_ATTACHMENTS_PER_PARENT = 3
+private let MAX_ATTACHMENTS_TOTAL_SIZE = 10 * 1024 * 1024
 
 /// Form for submitting new feedback.
 @MainActor
@@ -15,10 +29,16 @@ final class FeedbackFormViewController: NSViewController {
     private let messageScrollView = NSScrollView()
     private let messageTextView = NSTextView()
     private let placeholderLabel = NSTextField(labelWithString: "")
+    private let attachmentsStack = NSStackView()
+    private let attachButton = NSButton(title: "", target: nil, action: nil)
+    private let attachHintLabel = NSTextField(labelWithString: "")
     private let metadataLabel = NSTextField(labelWithString: "")
     private let submitButton = NSButton(title: "", target: nil, action: nil)
     private let statusLabel = NSTextField(labelWithString: "")
     private let spinner = NSProgressIndicator()
+
+    // Attachment state
+    private var pendingAttachments: [PendingAttachment] = []
 
     // Success views
     private let successContainer = NSView()
@@ -107,6 +127,35 @@ final class FeedbackFormViewController: NSViewController {
             placeholderLabel.leadingAnchor.constraint(equalTo: messageTextView.leadingAnchor, constant: 10),
         ])
 
+        // Attachments row
+        let attachRow = NSStackView()
+        attachRow.orientation = .horizontal
+        attachRow.spacing = 8
+        attachRow.alignment = .centerY
+
+        if let paperclip = NSImage(systemSymbolName: "paperclip", accessibilityDescription: nil) {
+            attachButton.image = paperclip
+            attachButton.imagePosition = .imageLeading
+        }
+        attachButton.title = L10n.attach
+        attachButton.bezelStyle = .rounded
+        attachButton.controlSize = .regular
+        attachButton.target = self
+        attachButton.action = #selector(attachTapped)
+        attachRow.addArrangedSubview(attachButton)
+
+        attachHintLabel.stringValue = L10n.attachHint
+        attachHintLabel.font = .systemFont(ofSize: 10)
+        attachHintLabel.textColor = .tertiaryLabelColor
+        attachRow.addArrangedSubview(attachHintLabel)
+        formStack.addArrangedSubview(attachRow)
+
+        // Selected attachments list (hidden when empty)
+        attachmentsStack.orientation = .vertical
+        attachmentsStack.spacing = 4
+        attachmentsStack.alignment = .leading
+        formStack.addArrangedSubview(attachmentsStack)
+
         // System info
         let meta = DeviceMetadata.collect()
         let metaString = [meta["os_version"], meta["app_name"].map { "\($0) v\(meta["app_version"] ?? "?")" }, meta["hardware"]]
@@ -143,11 +192,137 @@ final class FeedbackFormViewController: NSViewController {
         formStack.addArrangedSubview(submitRow)
 
         // Width constraints
-        for field in [categoryPopup, nameField, emailField, messageScrollView, submitRow] as [NSView] {
+        for field in [categoryPopup, nameField, emailField, messageScrollView, attachRow, attachmentsStack, submitRow] as [NSView] {
             field.translatesAutoresizingMaskIntoConstraints = false
             field.widthAnchor.constraint(equalTo: formStack.widthAnchor, constant: -40).isActive = true
         }
         messageScrollView.heightAnchor.constraint(greaterThanOrEqualToConstant: 120).isActive = true
+    }
+
+    // MARK: - Attachments
+
+    @objc private func attachTapped() {
+        let panel = NSOpenPanel()
+        panel.canChooseFiles = true
+        panel.canChooseDirectories = false
+        panel.allowsMultipleSelection = true
+        panel.prompt = L10n.attachChoose
+
+        if #available(macOS 11.0, *) {
+            var types: [UTType] = [.png, .jpeg, .gif, .webP, .pdf, .plainText]
+            if let logType = UTType(filenameExtension: "log") { types.append(logType) }
+            panel.allowedContentTypes = types
+        }
+
+        panel.beginSheetModal(for: view.window!) { [weak self] response in
+            guard response == .OK, let self else { return }
+            for url in panel.urls {
+                self.handleSelectedFile(url)
+            }
+        }
+    }
+
+    private func handleSelectedFile(_ url: URL) {
+        guard pendingAttachments.count < MAX_ATTACHMENTS_PER_PARENT else {
+            showStatus(String(format: L10n.attachMaxFiles, MAX_ATTACHMENTS_PER_PARENT), isError: true)
+            return
+        }
+
+        let data: Data
+        do {
+            data = try Data(contentsOf: url)
+        } catch {
+            showStatus(L10n.attachReadFailed, isError: true)
+            return
+        }
+
+        let fileName = url.lastPathComponent
+        guard data.count > 0, data.count <= MAX_ATTACHMENT_SIZE else {
+            showStatus(String(format: L10n.attachTooLarge, fileName), isError: true)
+            return
+        }
+
+        let totalAfter = pendingAttachments.reduce(0) { $0 + $1.sizeBytes } + data.count
+        guard totalAfter <= MAX_ATTACHMENTS_TOTAL_SIZE else {
+            showStatus(L10n.attachTotalTooLarge, isError: true)
+            return
+        }
+
+        let mime = mimeType(forExtension: url.pathExtension.lowercased())
+        pendingAttachments.append(PendingAttachment(url: url, data: data, fileName: fileName, mimeType: mime))
+        renderAttachments()
+        statusLabel.isHidden = true
+    }
+
+    private func mimeType(forExtension ext: String) -> String {
+        switch ext {
+        case "png": return "image/png"
+        case "jpg", "jpeg": return "image/jpeg"
+        case "gif": return "image/gif"
+        case "webp": return "image/webp"
+        case "pdf": return "application/pdf"
+        case "txt", "log": return "text/plain"
+        default: return "application/octet-stream"
+        }
+    }
+
+    private func renderAttachments() {
+        attachmentsStack.arrangedSubviews.forEach { $0.removeFromSuperview() }
+
+        for (index, att) in pendingAttachments.enumerated() {
+            let row = NSStackView()
+            row.orientation = .horizontal
+            row.spacing = 6
+            row.alignment = .centerY
+
+            let icon = NSImageView()
+            let symbolName = att.mimeType.hasPrefix("image/") ? "photo" : "doc.text"
+            if let img = NSImage(systemSymbolName: symbolName, accessibilityDescription: nil) {
+                icon.image = img
+                icon.contentTintColor = .secondaryLabelColor
+            }
+            icon.setContentHuggingPriority(.required, for: .horizontal)
+            row.addArrangedSubview(icon)
+
+            let name = NSTextField(labelWithString: att.fileName)
+            name.font = .systemFont(ofSize: 12)
+            name.lineBreakMode = .byTruncatingMiddle
+            row.addArrangedSubview(name)
+
+            let size = NSTextField(labelWithString: humanSize(att.sizeBytes))
+            size.font = .systemFont(ofSize: 11)
+            size.textColor = .tertiaryLabelColor
+            size.setContentHuggingPriority(.required, for: .horizontal)
+            row.addArrangedSubview(size)
+
+            let remove = NSButton(title: "", target: self, action: #selector(removeAttachmentTapped(_:)))
+            remove.bezelStyle = .circular
+            remove.controlSize = .small
+            remove.tag = index
+            if let xmark = NSImage(systemSymbolName: "xmark", accessibilityDescription: L10n.attachRemove) {
+                remove.image = xmark
+                remove.imagePosition = .imageOnly
+            }
+            remove.setContentHuggingPriority(.required, for: .horizontal)
+            row.addArrangedSubview(remove)
+
+            attachmentsStack.addArrangedSubview(row)
+            row.translatesAutoresizingMaskIntoConstraints = false
+            row.widthAnchor.constraint(equalTo: attachmentsStack.widthAnchor).isActive = true
+        }
+    }
+
+    @objc private func removeAttachmentTapped(_ sender: NSButton) {
+        let idx = sender.tag
+        guard idx >= 0, idx < pendingAttachments.count else { return }
+        pendingAttachments.remove(at: idx)
+        renderAttachments()
+    }
+
+    private func humanSize(_ bytes: Int) -> String {
+        if bytes < 1024 { return "\(bytes) B" }
+        if bytes < 1024 * 1024 { return String(format: "%.1f KB", Double(bytes) / 1024) }
+        return String(format: "%.1f MB", Double(bytes) / (1024 * 1024))
     }
 
     // MARK: - Success view
@@ -250,6 +425,7 @@ final class FeedbackFormViewController: NSViewController {
 
         let category = FeedbackCategory.allCases[categoryPopup.indexOfSelectedItem]
         let metadata = DeviceMetadata.collect()
+        let attachmentsToUpload = pendingAttachments
 
         setFormEnabled(false)
         spinner.isHidden = false
@@ -258,12 +434,26 @@ final class FeedbackFormViewController: NSViewController {
 
         Task {
             do {
+                // Upload attachments first so we can bind them atomically with the feedback insert.
+                var attachmentIds: [String] = []
+                for (index, att) in attachmentsToUpload.enumerated() {
+                    showStatus(String(format: L10n.attachUploading, index + 1, attachmentsToUpload.count), isError: false)
+                    let uploaded = try await apiClient.uploadAttachment(
+                        data: att.data,
+                        fileName: att.fileName,
+                        mimeType: att.mimeType
+                    )
+                    attachmentIds.append(uploaded.attachmentId)
+                }
+
+                statusLabel.isHidden = true
                 let result = try await apiClient.submitFeedback(
                     category: category.rawValue,
                     message: message,
                     name: name,
                     email: email,
-                    metadata: metadata
+                    metadata: metadata,
+                    attachmentIds: attachmentIds.isEmpty ? nil : attachmentIds
                 )
                 store.savedName = name
                 store.savedEmail = email
@@ -294,6 +484,8 @@ final class FeedbackFormViewController: NSViewController {
 
     @objc private func sendAnotherTapped() {
         messageTextView.string = ""
+        pendingAttachments.removeAll()
+        renderAttachments()
         updatePlaceholder()
         statusLabel.isHidden = true
         setFormEnabled(true)
@@ -313,6 +505,12 @@ final class FeedbackFormViewController: NSViewController {
         emailField.isEnabled = enabled
         messageTextView.isEditable = enabled
         submitButton.isEnabled = enabled
+        attachButton.isEnabled = enabled
+        for row in attachmentsStack.arrangedSubviews {
+            for sub in (row as? NSStackView)?.arrangedSubviews ?? [] {
+                if let btn = sub as? NSButton { btn.isEnabled = enabled }
+            }
+        }
     }
 
     private func showStatus(_ text: String, isError: Bool) {

@@ -118,12 +118,50 @@ The floating panel has two tabs:
 - Category picker (Bug Report, Feature Request, Question, Other)
 - Name and email fields
 - Message text area
+- File attachments (Pro plan) — screenshots, PDFs, or `.log` files
 - Auto-collected system info (macOS version, app version, hardware model)
 
 **My Conversations**
 - List of past feedback with unread indicators
 - Conversation threads with message bubbles
 - Reply to developer responses directly
+
+### File Attachments
+
+When your StorePal account is on the Pro plan, users can attach files to their
+feedback. The built-in panel exposes an **Attach** button next to the message
+field. Limits:
+
+- Up to 3 files per submission
+- 5 MB per file, 10 MB total
+- Images (PNG, JPEG, GIF, WebP), PDF, plain text, and `.log`
+
+Attachments appear alongside each feedback item in your StorePal dashboard and
+in the new-feedback email notification.
+
+If you're wiring up your own UI instead of using the bundled panel, call the
+API directly:
+
+```swift
+// 1. Upload each file (Pro plan required)
+let uploaded = try await apiClient.uploadAttachment(
+    data: fileData,
+    fileName: "crash.log",
+    mimeType: "text/plain"
+)
+
+// 2. Submit the feedback with the attachment ids
+try await apiClient.submitFeedback(
+    category: "bug",
+    message: "App crashed on launch",
+    name: "Jane",
+    email: "jane@example.com",
+    attachmentIds: [uploaded.attachmentId]
+)
+```
+
+Unbound uploads are garbage-collected after one hour, so call `submitFeedback`
+(or `postReply` for an in-thread attachment) promptly after upload.
 
 ## What's New
 

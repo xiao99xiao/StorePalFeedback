@@ -29,3 +29,14 @@
 "success.subtitle" = "我们已收到您的反馈，如有需要会通过邮件联系您。";
 "success.send_another" = "继续反馈";
 "success.close" = "关闭";
+
+/* Attachments */
+"form.attach" = "添加附件";
+"form.attach.hint" = "图片、PDF 或 .log — 最多 3 个文件，每个 5 MB";
+"form.attach.choose" = "选择";
+"form.attach.remove" = "移除附件";
+"form.attach.max_files" = "最多 %d 个附件。";
+"form.attach.too_large" = "%@ 超过 5 MB 限制。";
+"form.attach.total_too_large" = "附件总大小超过 10 MB。";
+"form.attach.read_failed" = "无法读取所选文件。";
+"form.attach.uploading" = "上传附件 %d / %d…";

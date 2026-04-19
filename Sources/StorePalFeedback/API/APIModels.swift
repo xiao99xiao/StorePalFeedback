@@ -15,6 +15,7 @@ struct SubmitFeedbackRequest: Encodable, Sendable {
     let category: String
     let message: String
     let metadata: [String: String]?
+    let attachmentIds: [String]?
 }
 
 public struct FeedbackCreated: Decodable, Sendable {
@@ -22,6 +23,24 @@ public struct FeedbackCreated: Decodable, Sendable {
     public let conversationToken: String
     public let category: String
     public let createdAt: String
+}
+
+// MARK: - Attachments
+
+/// Metadata for an uploaded attachment that is not yet bound to a feedback or reply.
+public struct AttachmentUploaded: Decodable, Sendable {
+    public let attachmentId: String
+    public let fileName: String
+    public let mimeType: String
+    public let sizeBytes: Int
+}
+
+/// Metadata for an attachment returned when fetching a conversation.
+public struct AttachmentInfo: Decodable, Sendable, Identifiable {
+    public let id: String
+    public let fileName: String
+    public let mimeType: String
+    public let sizeBytes: Int
 }
 
 // MARK: - Conversations
@@ -59,6 +78,7 @@ public struct FeedbackDetail: Decodable, Sendable {
     public let replyCount: Int
     public let lastReplyAt: String?
     public let createdAt: String
+    public let attachments: [AttachmentInfo]?
 }
 
 public struct Reply: Decodable, Sendable, Identifiable {
@@ -66,6 +86,7 @@ public struct Reply: Decodable, Sendable, Identifiable {
     public let senderType: String
     public let message: String
     public let createdAt: String
+    public let attachments: [AttachmentInfo]?
 }
 
 // MARK: - Unread

@@ -37,4 +37,15 @@ enum L10n {
     static var successSubtitle: String { string("success.subtitle") }
     static var sendAnother: String { string("success.send_another") }
     static var close: String { string("success.close") }
+
+    // Attachments
+    static var attach: String { string("form.attach") }
+    static var attachHint: String { string("form.attach.hint") }
+    static var attachChoose: String { string("form.attach.choose") }
+    static var attachRemove: String { string("form.attach.remove") }
+    static var attachMaxFiles: String { string("form.attach.max_files") }
+    static var attachTooLarge: String { string("form.attach.too_large") }
+    static var attachTotalTooLarge: String { string("form.attach.total_too_large") }
+    static var attachReadFailed: String { string("form.attach.read_failed") }
+    static var attachUploading: String { string("form.attach.uploading") }
 }

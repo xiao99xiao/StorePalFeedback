@@ -29,3 +29,14 @@
 "success.subtitle" = "Votre commentaire a été reçu. Nous vous contacterons si nécessaire.";
 "success.send_another" = "Envoyer un autre";
 "success.close" = "Fermer";
+
+/* Attachments */
+"form.attach" = "Joindre";
+"form.attach.hint" = "Images, PDF ou .log — jusqu'à 3 fichiers, 5 Mo chacun";
+"form.attach.choose" = "Choisir";
+"form.attach.remove" = "Supprimer la pièce jointe";
+"form.attach.max_files" = "Maximum %d pièces jointes.";
+"form.attach.too_large" = "%@ dépasse 5 Mo.";
+"form.attach.total_too_large" = "Le total des pièces jointes dépasse 10 Mo.";
+"form.attach.read_failed" = "Impossible de lire le fichier sélectionné.";
+"form.attach.uploading" = "Envoi de la pièce jointe %d sur %d…";

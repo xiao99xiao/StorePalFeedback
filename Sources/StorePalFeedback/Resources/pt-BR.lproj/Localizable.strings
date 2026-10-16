@@ -40,3 +40,23 @@
 "form.attach.total_too_large" = "Anexos totalizam mais de 10 MB.";
 "form.attach.read_failed" = "Não foi possível ler o arquivo selecionado.";
 "form.attach.uploading" = "Enviando anexo %d de %d…";
+
+/* iOS feedback and release notes */
+"form.attach.unsupported" = "Este tipo de arquivo não é compatível. Escolha uma imagem, PDF, texto ou registro.";
+"form.message.hint" = "De 10 a 5.000 caracteres. São incluídos versões do app e do sistema, idioma e modelo.";
+"conversation.title" = "Minhas conversas";
+"conversation.empty" = "Ainda não há conversas. Envie um comentário para começar.";
+"conversation.unread" = "Resposta não lida";
+"conversation.cooldown" = "Aguarde 30 segundos entre respostas.";
+"conversation.reply_limit" = "Esta conversa atingiu o limite de 20 respostas.";
+"conversation.developer" = "Desenvolvedor";
+"conversation.you" = "Você";
+"conversation.reply_placeholder" = "Escreva uma resposta…";
+"conversation.send" = "Enviar resposta";
+"action.retry" = "Tentar novamente";
+"action.load_more" = "Carregar mais";
+"sdk.not_configured" = "O feedback não está configurado. Entre em contato com o desenvolvedor.";
+"release.title" = "Novidades";
+"release.error" = "Não foi possível carregar as novidades. Verifique sua conexão e tente novamente.";
+"release.missing" = "Ainda não há notas publicadas para esta versão.";
+"release.all" = "Ver todas as notas de versão";

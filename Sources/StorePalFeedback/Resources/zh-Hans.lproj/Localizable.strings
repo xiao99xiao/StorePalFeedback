@@ -40,3 +40,23 @@
 "form.attach.total_too_large" = "附件总大小超过 10 MB。";
 "form.attach.read_failed" = "无法读取所选文件。";
 "form.attach.uploading" = "上传附件 %d / %d…";
+
+/* iOS feedback and release notes */
+"form.attach.unsupported" = "不支持此文件类型。请选择图片、PDF、文本或日志文件。";
+"form.message.hint" = "10–5,000 个字符。反馈中会附上应用版本、系统版本、语言及硬件型号。";
+"conversation.title" = "我的对话";
+"conversation.empty" = "暂无对话，提交反馈后即可在这里查看。";
+"conversation.unread" = "有未读回复";
+"conversation.cooldown" = "请等待 30 秒后再回复。";
+"conversation.reply_limit" = "此对话已达到 20 条回复的上限。";
+"conversation.developer" = "开发者";
+"conversation.you" = "你";
+"conversation.reply_placeholder" = "输入回复…";
+"conversation.send" = "发送回复";
+"action.retry" = "重试";
+"action.load_more" = "加载更多";
+"sdk.not_configured" = "反馈功能尚未配置，请联系应用开发者。";
+"release.title" = "更新内容";
+"release.error" = "无法加载更新说明，请检查网络后重试。";
+"release.missing" = "此版本尚未发布更新说明。";
+"release.all" = "查看全部更新说明";

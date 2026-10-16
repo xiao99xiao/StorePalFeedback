@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "StorePalFeedback",
     defaultLocalization: "en",
-    platforms: [.macOS(.v13)],
+    platforms: [.macOS(.v13), .iOS(.v16)],
     products: [
         .library(name: "StorePalFeedback", targets: ["StorePalFeedback"]),
         .library(name: "StorePalSwiftUI", targets: ["StorePalSwiftUI"]),
@@ -16,6 +16,8 @@ let package = Package(
             resources: [.process("Resources")]
         ),
         .target(name: "StorePalSwiftUI", dependencies: ["StorePalFeedback"]),
-        .target(name: "StorePalWhatsNew", dependencies: ["StorePalFeedback"]),
+        .target(name: "StorePalWhatsNew", dependencies: ["StorePalFeedback"], resources: [.process("Resources")]),
+        .testTarget(name: "StorePalFeedbackTests", dependencies: ["StorePalFeedback"]),
+        .testTarget(name: "StorePalWhatsNewTests", dependencies: ["StorePalWhatsNew"]),
     ]
 )

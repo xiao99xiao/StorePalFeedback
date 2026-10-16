@@ -1,6 +1,6 @@
 # StorePalFeedback
 
-A native macOS SDK for [StorePal](https://storepal.app). Includes a floating feedback panel and a "What's New" release note prompt — built with AppKit, designed for macOS 26 Liquid Glass.
+A native iOS and macOS SDK for [StorePal](https://storepal.app). Includes feedback forms, file attachments, a conversation inbox, and “What's New” release note prompts. iOS uses native SwiftUI sheets with UIKit entry points; macOS keeps its AppKit floating panel and release note window.
 
 ## Install
 
@@ -8,7 +8,7 @@ Add to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/xiao99xiao/StorePalFeedback.git", from: "1.1.0"),
+    .package(url: "https://github.com/xiao99xiao/StorePalFeedback.git", from: "1.2.0"),
 ]
 ```
 
@@ -16,7 +16,7 @@ Then add the targets you need:
 
 ```swift
 .target(name: "MyApp", dependencies: [
-    "StorePalSwiftUI",      // Feedback panel (SwiftUI)
+    "StorePalSwiftUI",      // Feedback controls (re-exports StorePalFeedback)
     "StorePalWhatsNew",     // What's New prompt (optional)
 ]),
 ```
@@ -27,7 +27,67 @@ Or in Xcode: **File → Add Package Dependencies** → paste the repo URL.
 
 Get an API key from your [StorePal dashboard](https://storepal.app/dashboard) → Integrations tab (requires Pro plan).
 
-### SwiftUI
+### iOS · SwiftUI
+
+Configure once before presenting either feature. Add the automatic update modifier once to the scene's root view:
+
+```swift
+import SwiftUI
+import StorePalSwiftUI
+import StorePalWhatsNew
+
+@main
+struct MyApp: App {
+    init() {
+        StorePalFeedback.configure(apiKey: "sp_live_xxx")
+    }
+
+    var body: some Scene {
+        WindowGroup {
+            SettingsView()
+                .whatsNewOnUpdate()
+        }
+    }
+}
+
+struct SettingsView: View {
+    @State private var showWhatsNew = false
+
+    var body: some View {
+        Form {
+            FeedbackButton("Send Feedback")
+            Button("What's New") { showWhatsNew = true }
+        }
+        .whatsNewSheet(isPresented: $showWhatsNew)
+    }
+}
+```
+
+For a custom feedback action, use `.feedbackSheet(isPresented: $showFeedback)` or present `StorePalFeedbackView()` in your own sheet. To show a specific release manually, use `.whatsNewSheet(isPresented: $showWhatsNew, version: "1.2.0")`.
+
+### iOS · UIKit
+
+Configure once in your app's startup flow. Present from a visible controller in the correct scene:
+
+```swift
+import StorePalFeedback
+import StorePalWhatsNew
+
+// At startup:
+StorePalFeedback.configure(apiKey: "sp_live_xxx")
+
+// In viewDidAppear, after super.viewDidAppear(animated):
+StorePalWhatsNew.check(from: self)
+
+// In button actions:
+StorePalFeedback.show(from: self)
+StorePalWhatsNew.show(from: self)
+StorePalWhatsNew.show(from: self, version: "1.2.0")
+```
+
+The presenter must be on screen with no other modal open. The `show(from:)` methods return whether presentation started. To control presentation yourself, use `StorePalFeedback.makeViewController()` or `StorePalWhatsNew.makeViewController(version:)`. iOS never chooses an arbitrary application window.
+
+### macOS · SwiftUI
 
 ```swift
 import StorePalSwiftUI
@@ -50,7 +110,7 @@ struct MyApp: App {
 }
 ```
 
-### AppKit
+### macOS · AppKit
 
 ```swift
 import StorePalFeedback
@@ -66,7 +126,11 @@ StorePalWhatsNew.check()
 }
 ```
 
-## Feedback Panel
+## Feedback
+
+On iOS, the feedback sheet includes the form, file attachments through Files, and an inbox for reading and replying to conversations. Conversation history uses the saved or prefilled email, supports pagination and pull to refresh, and marks conversations as read when opened. The form requires a name, email, and a message of 10–5,000 characters. Replies accept up to 5,000 characters.
+
+On macOS, feedback opens in the existing floating panel. The following window controls and menu commands are macOS only.
 
 ### Configure
 
@@ -119,7 +183,7 @@ The floating panel has two tabs:
 - Name and email fields
 - Message text area
 - File attachments (Pro plan) — screenshots, PDFs, or `.log` files
-- Auto-collected system info (macOS version, app version, hardware model)
+- Auto-collected diagnostic context (OS version, app version/build, app name, locale, hardware model)
 
 **My Conversations**
 - List of past feedback with unread indicators
@@ -139,42 +203,23 @@ field. Limits:
 Attachments appear alongside each feedback item in your StorePal dashboard and
 in the new-feedback email notification.
 
-If you're wiring up your own UI instead of using the bundled panel, call the
-API directly:
-
-```swift
-// 1. Upload each file (Pro plan required)
-let uploaded = try await apiClient.uploadAttachment(
-    data: fileData,
-    fileName: "crash.log",
-    mimeType: "text/plain"
-)
-
-// 2. Submit the feedback with the attachment ids
-try await apiClient.submitFeedback(
-    category: "bug",
-    message: "App crashed on launch",
-    name: "Jane",
-    email: "jane@example.com",
-    attachmentIds: [uploaded.attachmentId]
-)
-```
+For a custom networking integration, use the [REST API documentation](https://storepal.app/native-sdk) and Dashboard → Integrations. Upload each file to `POST /api/v1/feedback/attachments`, then pass the returned IDs as `attachment_ids` to `POST /api/v1/feedback` or the conversation reply endpoint. The SDK's API client is internal.
 
 Unbound uploads are garbage-collected after one hour, so call `submitFeedback`
 (or `postReply` for an in-thread attachment) promptly after upload.
 
 ## What's New
 
-Show release notes when your app updates to a new version. The dialog displays a server-rendered release note page in a native window.
+Show release notes when your app updates to a new version. The prompt displays the hosted release note page in WKWebView: a sheet on iOS and a window on macOS. Links open outside the embedded view. iOS includes loading, retry, missing-note, and web-loading failure states.
 
 ### How It Works
 
-1. On app launch, `StorePalWhatsNew.check()` compares the current app version (`CFBundleShortVersionString`) with the last seen version stored in UserDefaults
+1. `.whatsNewOnUpdate()` (iOS SwiftUI), `StorePalWhatsNew.check(from:)` (iOS UIKit), or `StorePalWhatsNew.check()` (macOS) compares the installed app version (`CFBundleShortVersionString`) with the last seen version in UserDefaults
 2. If the version changed (and it's not the first install), it fetches the release note for the current version from the StorePal API
-3. If a release note exists, it shows a dialog with the app icon, an update message, and the release note content rendered via WKWebView
+3. If a release note exists, it displays that exact version; the version is marked seen after presentation. Failed or missing API responses remain eligible for a later check. On iOS SwiftUI, returning to an active scene checks again
 4. The release note content is managed in your [StorePal dashboard](https://storepal.app/dashboard) → Release Notes
 
-### Usage
+### macOS Usage
 
 ```swift
 import StorePalWhatsNew
@@ -198,19 +243,28 @@ StorePalWhatsNew.show(version: "2.1.0")
 
 | Target | Import | For |
 |--------|--------|-----|
-| `StorePalFeedback` | `import StorePalFeedback` | Core — AppKit feedback panel + API client |
+| `StorePalFeedback` | `import StorePalFeedback` | Core — iOS feedback sheet, UIKit presentation, AppKit panel, shared API client |
 | `StorePalSwiftUI` | `import StorePalSwiftUI` | SwiftUI convenience (re-exports StorePalFeedback) |
 | `StorePalWhatsNew` | `import StorePalWhatsNew` | "What's New" release note prompt |
 
-- **Zero external dependencies** — only Foundation, AppKit, WebKit, and SwiftUI
+- **Zero external dependencies** — Apple frameworks only
 - **Swift 6 strict concurrency** — `actor` API client, `@MainActor` UI, all models `Sendable`
 - **Modular** — import only what you need
+- **Privacy manifests included** — declares app-local UserDefaults usage, support data and attachments, and no tracking. Feedback includes the diagnostic fields listed above; review these alongside your app's own data use.
 
 ## Requirements
 
 - macOS 13+
+- iOS / iPadOS 16+ (iOS support starts with SDK 1.2.0)
 - Swift 6.0+
 - StorePal Pro plan (for API key)
+
+## Examples and validation
+
+- `Example/`: the existing macOS Swift package example. Replace its API-key placeholder before use.
+- `Example-iOS/`: iPhone/iPad example and simulator UI tests. Run `xcodegen generate --spec Example-iOS/project.yml` and open the generated project. Replace the API-key placeholder in `Sources/ExampleApp.swift` for your app.
+- `swift test`: shared API request/response, metadata, and upgrade-tracking regression tests on macOS. The same package tests can run on iOS with Xcode's `StorePalFeedback-Package` scheme.
+- For local UI tests, run `node Example-iOS/mock-api.mjs`, then test the generated `StorePalExample-iOS` scheme on a simulator. Test launch arguments use a local fixture and never call production. See [Example-iOS/README.md](Example-iOS/README.md).
 
 ## Links
 

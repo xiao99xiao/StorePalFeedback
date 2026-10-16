@@ -1,3 +1,4 @@
+#if os(macOS)
 import AppKit
 
 /// Floating panel for the feedback UI.
@@ -55,3 +56,5 @@ final class FeedbackPanel: NSPanel {
         return super.performKeyEquivalent(with: event)
     }
 }
+
+#endif

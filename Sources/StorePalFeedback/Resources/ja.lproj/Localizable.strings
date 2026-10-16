@@ -40,3 +40,23 @@
 "form.attach.total_too_large" = "添付の合計が 10MB を超えています。";
 "form.attach.read_failed" = "選択したファイルを読み込めませんでした。";
 "form.attach.uploading" = "添付をアップロード中 %d/%d…";
+
+/* iOS feedback and release notes */
+"form.attach.unsupported" = "この種類のファイルは添付できません。画像、PDF、テキスト、ログを選択してください。";
+"form.message.hint" = "10〜5,000 文字。アプリと OS のバージョン、言語、機種情報が送信されます。";
+"conversation.title" = "会話";
+"conversation.empty" = "会話はまだありません。フィードバックを送信するとここに表示されます。";
+"conversation.unread" = "未読の返信";
+"conversation.cooldown" = "返信するには 30 秒お待ちください。";
+"conversation.reply_limit" = "この会話は返信数の上限（20 件）に達しました。";
+"conversation.developer" = "開発者";
+"conversation.you" = "あなた";
+"conversation.reply_placeholder" = "返信を入力…";
+"conversation.send" = "返信を送信";
+"action.retry" = "再試行";
+"action.load_more" = "さらに読み込む";
+"sdk.not_configured" = "フィードバックが設定されていません。開発者にお問い合わせください。";
+"release.title" = "新機能";
+"release.error" = "更新情報を読み込めませんでした。接続を確認して再試行してください。";
+"release.missing" = "このバージョンの更新情報はまだ公開されていません。";
+"release.all" = "すべての更新情報を見る";

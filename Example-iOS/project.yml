@@ -1,0 +1,58 @@
+name: StorePalExample-iOS
+options:
+  bundleIdPrefix: com.storepal
+  deploymentTarget:
+    iOS: '16.0'
+packages:
+  StorePalFeedback:
+    path: ..
+targets:
+  StorePalExample-iOS:
+    type: application
+    platform: iOS
+    sources: [Sources]
+    info:
+      path: Info.plist
+      properties:
+        CFBundleDisplayName: StorePal Example
+        CFBundleShortVersionString: '1.0.0'
+        CFBundleVersion: '1'
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: true
+        NSAppTransportSecurity:
+          NSAllowsLocalNetworking: true
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.storepal.sdk.example
+        SWIFT_VERSION: '6.0'
+        TARGETED_DEVICE_FAMILY: '1,2'
+        CODE_SIGNING_ALLOWED: NO
+    dependencies:
+      - package: StorePalFeedback
+        product: StorePalSwiftUI
+      - package: StorePalFeedback
+        product: StorePalWhatsNew
+  StorePalExampleUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [UITests]
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: '6.0'
+        CODE_SIGNING_ALLOWED: NO
+    dependencies:
+      - target: StorePalExample-iOS
+schemes:
+  StorePalExample-iOS:
+    build:
+      targets:
+        StorePalExample-iOS: all
+    test:
+      targets: [StorePalExampleUITests]

@@ -7,9 +7,9 @@ actor APIClient {
     private let decoder: JSONDecoder
     private let encoder: JSONEncoder
 
-    init(configuration: StorePalConfiguration) {
+    init(configuration: StorePalConfiguration, session: URLSession = URLSession(configuration: .default)) {
         self.config = configuration
-        self.session = URLSession(configuration: .default)
+        self.session = session
 
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
@@ -79,8 +79,11 @@ actor APIClient {
     // MARK: - Conversations
 
     func listConversations(email: String, page: Int = 1) async throws -> ConversationsPage {
-        let encoded = email.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? email
-        return try await get("/api/v1/conversations?email=\(encoded)&page=\(page)&per_page=20")
+        return try await get("/api/v1/conversations", query: [
+            URLQueryItem(name: "email", value: email),
+            URLQueryItem(name: "page", value: String(page)),
+            URLQueryItem(name: "per_page", value: "20"),
+        ])
     }
 
     func getConversation(token: String) async throws -> ConversationDetail {
@@ -88,8 +91,7 @@ actor APIClient {
     }
 
     func getUnreadCount(email: String) async throws -> Int {
-        let encoded = email.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? email
-        let response: UnreadResponse = try await get("/api/v1/conversations/unread?email=\(encoded)")
+        let response: UnreadResponse = try await get("/api/v1/conversations/unread", query: [URLQueryItem(name: "email", value: email)])
         return response.unreadCount
     }
 
@@ -112,9 +114,8 @@ actor APIClient {
     // MARK: - Release Notes
 
     func getReleaseNote(version: String) async throws -> ReleaseNote? {
-        let encoded = version.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? version
         do {
-            return try await get("/api/v1/releases?version=\(encoded)")
+            return try await get("/api/v1/releases", query: [URLQueryItem(name: "version", value: version)])
         } catch StorePalError.apiError(let e) where e.code == "NOT_FOUND" || e.code == "HTTP_404" {
             return nil
         }
@@ -122,14 +123,21 @@ actor APIClient {
 
     // MARK: - Private
 
-    private func makeURL(_ path: String) -> URL {
-        // Use string concatenation to preserve query parameters — appendingPathComponent encodes ? as %3F
-        URL(string: config.baseURL.absoluteString + path)!
+    private func makeURL(_ path: String, query: [URLQueryItem] = []) -> URL {
+        var components = URLComponents(url: config.baseURL, resolvingAgainstBaseURL: false)!
+        components.path = components.path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+            .split(separator: "/").map(String.init).map { "/" + $0 }.joined() + path
+        components.queryItems = query.isEmpty ? nil : query
+        // URLSearchParams on the API treats a literal + as a space; preserve email aliases.
+        components.percentEncodedQuery = components.percentEncodedQuery?.replacingOccurrences(of: "+", with: "%2B")
+        components.fragment = nil
+        return components.url!
     }
 
-    private func get<T: Decodable & Sendable>(_ path: String) async throws -> T {
-        var request = URLRequest(url: makeURL(path))
+    private func get<T: Decodable & Sendable>(_ path: String, query: [URLQueryItem] = []) async throws -> T {
+        var request = URLRequest(url: makeURL(path, query: query))
         request.setValue("Bearer \(config.apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue(Locale.preferredLanguages.joined(separator: ","), forHTTPHeaderField: "Accept-Language")
 
         return try await perform(request)
     }

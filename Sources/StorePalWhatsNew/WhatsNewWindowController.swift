@@ -1,3 +1,4 @@
+#if os(macOS)
 import AppKit
 import WebKit
 
@@ -148,7 +149,7 @@ final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
     // MARK: - WKNavigationDelegate
 
     // Open links in the default browser, not inside the WebView
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void) {
         if navigationAction.navigationType == .linkActivated, let url = navigationAction.request.url {
             NSWorkspace.shared.open(url)
             decisionHandler(.cancel)
@@ -157,3 +158,5 @@ final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
         }
     }
 }
+
+#endif

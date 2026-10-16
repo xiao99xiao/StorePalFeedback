@@ -1,3 +1,4 @@
+#if os(macOS)
 import AppKit
 import UniformTypeIdentifiers
 
@@ -529,3 +530,5 @@ extension FeedbackFormViewController: NSTextViewDelegate {
         updatePlaceholder()
     }
 }
+
+#endif

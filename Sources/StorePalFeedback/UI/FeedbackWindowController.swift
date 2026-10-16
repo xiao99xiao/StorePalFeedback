@@ -1,3 +1,4 @@
+#if os(macOS)
 import AppKit
 
 /// Manages the feedback panel window.
@@ -27,3 +28,5 @@ final class FeedbackWindowController: NSWindowController {
         if window?.isVisible == true { hidePanel() } else { showPanel() }
     }
 }
+
+#endif

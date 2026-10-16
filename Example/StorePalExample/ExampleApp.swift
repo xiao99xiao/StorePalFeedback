@@ -8,7 +8,7 @@ struct ExampleApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .feedbackPanel(apiKey: "sp_live_9453de63c9a344a01ae28c9bc3336279")
+                .feedbackPanel(apiKey: "sp_live_REPLACE_ME")
                 .onAppear {
                     // Auto-check for release notes on version upgrade
                     StorePalWhatsNew.check()

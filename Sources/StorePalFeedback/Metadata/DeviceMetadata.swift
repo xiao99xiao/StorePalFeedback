@@ -15,7 +15,12 @@ enum DeviceMetadata {
         }
 
         let os = ProcessInfo.processInfo.operatingSystemVersion
-        info["os_version"] = "macOS \(os.majorVersion).\(os.minorVersion).\(os.patchVersion)"
+        #if os(iOS)
+        let platform = "iOS"
+        #else
+        let platform = "macOS"
+        #endif
+        info["os_version"] = "\(platform) \(os.majorVersion).\(os.minorVersion).\(os.patchVersion)"
         info["locale"] = Locale.current.identifier
         info["hardware"] = hardwareModel()
 
@@ -23,10 +28,16 @@ enum DeviceMetadata {
     }
 
     private static func hardwareModel() -> String {
+        #if os(iOS)
+        let key = "hw.machine"
+        #else
+        let key = "hw.model"
+        #endif
         var size = 0
-        sysctlbyname("hw.model", nil, &size, nil, 0)
+        sysctlbyname(key, nil, &size, nil, 0)
+        guard size > 0 else { return "unknown" }
         var model = [UInt8](repeating: 0, count: size)
-        sysctlbyname("hw.model", &model, &size, nil, 0)
+        sysctlbyname(key, &model, &size, nil, 0)
         if size > 0 { model = Array(model.prefix(size - 1)) }
         return String(decoding: model, as: UTF8.self)
     }

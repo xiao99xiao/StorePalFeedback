@@ -1,5 +1,10 @@
 import Foundation
 
+/// Shared localized SDK text, including the optional What's New target.
+public enum StorePalLocalization {
+    public static func string(_ key: String) -> String { L10n.string(key) }
+}
+
 /// Localized string helper using Bundle.module for Swift Package resources.
 enum L10n {
     static func string(_ key: String) -> String {

@@ -76,7 +76,7 @@ private func client(path: String = "") -> APIClient {
 }
 
 @Test func emailQueryPreservesReservedCharacters() async throws {
-    let page = try await client().listConversations(email: "dev+ios&name@example.com")
+    let page = try await client().importLegacyConversations(email: "dev+ios&name@example.com", page: 1)
     #expect(page.total == 0)
 }
 

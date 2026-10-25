@@ -145,7 +145,9 @@ private struct ConversationList: View {
             }
             ForEach(model.conversations) { conversation in
                 NavigationLink {
-                    ConversationView(token: conversation.conversationToken, client: model.client)
+                    ConversationView(token: conversation.conversationToken, client: model.client) {
+                        model.markConversationSeen(conversation.conversationToken)
+                    }
                 } label: {
                     VStack(alignment: .leading, spacing: 6) {
                         HStack {
@@ -172,6 +174,7 @@ private struct ConversationList: View {
 private struct ConversationView: View {
     let token: String
     let client: APIClient?
+    let onRead: @MainActor () -> Void
     @State private var detail: ConversationDetail?
     @State private var reply = ""
     @State private var errorMessage: String?
@@ -226,6 +229,7 @@ private struct ConversationView: View {
             let result = try await client.getConversation(token: token)
             try Task.checkCancellation()
             detail = result
+            onRead()
             errorMessage = nil
         } catch is CancellationError {
         } catch { errorMessage = FeedbackModel.message(for: error) }

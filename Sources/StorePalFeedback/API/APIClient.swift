@@ -6,10 +6,11 @@ actor APIClient {
     private let session: URLSession
     private let decoder: JSONDecoder
     private let encoder: JSONEncoder
+    private var inboxCache: (tokens: [String], conversations: [ConversationSummary])?
 
-    init(configuration: StorePalConfiguration, session: URLSession = URLSession(configuration: .default)) {
+    init(configuration: StorePalConfiguration, session: URLSession? = nil) {
         self.config = configuration
-        self.session = session
+        self.session = session ?? URLSession(configuration: .default, delegate: RejectRedirects(), delegateQueue: nil)
 
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
@@ -19,6 +20,8 @@ actor APIClient {
         encoder.keyEncodingStrategy = .convertToSnakeCase
         self.encoder = encoder
     }
+
+    deinit { session.invalidateAndCancel() }
 
     // MARK: - Feedback
 
@@ -38,7 +41,9 @@ actor APIClient {
             metadata: metadata,
             attachmentIds: (attachmentIds?.isEmpty ?? true) ? nil : attachmentIds
         )
-        return try await post("/api/v1/feedback", body: body)
+        let result: FeedbackCreated = try await post("/api/v1/feedback", body: body)
+        inboxCache = nil
+        return result
     }
 
     // MARK: - Attachments
@@ -47,7 +52,7 @@ actor APIClient {
     /// into the next `submitFeedback` / `postReply` call within a few minutes to bind it.
     /// Unbound attachments are garbage-collected after one hour.
     ///
-    /// Pro plan required. Max 5 MB per file; max 3 attachments per submission.
+    /// Available on Free and Pro. Max 5 MB per file; max 3 attachments per submission.
     /// Allowed types: PNG, JPEG, GIF, WebP, PDF, plain text, log files.
     func uploadAttachment(
         data: Data,
@@ -78,7 +83,8 @@ actor APIClient {
 
     // MARK: - Conversations
 
-    func listConversations(email: String, page: Int = 1) async throws -> ConversationsPage {
+    /// Only used to migrate an existing installation during the server compatibility phase.
+    func importLegacyConversations(email: String, page: Int) async throws -> ConversationsPage {
         return try await get("/api/v1/conversations", query: [
             URLQueryItem(name: "email", value: email),
             URLQueryItem(name: "page", value: String(page)),
@@ -86,13 +92,35 @@ actor APIClient {
         ])
     }
 
-    func getConversation(token: String) async throws -> ConversationDetail {
-        return try await get("/api/v1/conversations/\(token)")
+    func listConversations(tokens: [String], page: Int = 1) async throws -> ConversationsPage {
+        guard page > 0 else { throw StorePalError.apiError(StorePalAPIError(code: "VALIDATION_ERROR", message: "Page must be positive.")) }
+        let normalized = Array(Set(tokens.compactMap { UUID(uuidString: $0)?.uuidString.lowercased() })).sorted()
+        if page == 1 || inboxCache?.tokens != normalized {
+            var conversations: [String: ConversationSummary] = [:]
+            for offset in stride(from: 0, to: normalized.count, by: 100) {
+                struct Lookup: Encodable { let tokens: [String] }
+                let batch = Array(normalized[offset..<min(offset + 100, normalized.count)])
+                let result: ConversationsPage = try await post("/api/v1/conversations/lookup", body: Lookup(tokens: batch))
+                try Task.checkCancellation()
+                for item in result.conversations where batch.contains(item.conversationToken.lowercased()) { conversations[item.id] = item }
+            }
+            let sorted = conversations.values.sorted { $0.createdAt == $1.createdAt ? $0.id > $1.id : $0.createdAt > $1.createdAt }
+            inboxCache = (normalized, sorted)
+        }
+        let items = inboxCache?.conversations ?? []
+        let offset = min(items.count, (page - 1).multipliedReportingOverflow(by: 20).overflow ? items.count : (page - 1) * 20)
+        return ConversationsPage(conversations: Array(items.dropFirst(offset).prefix(20)), total: items.count, page: page, perPage: 20)
     }
 
-    func getUnreadCount(email: String) async throws -> Int {
-        let response: UnreadResponse = try await get("/api/v1/conversations/unread", query: [URLQueryItem(name: "email", value: email)])
-        return response.unreadCount
+    func getConversation(token: String) async throws -> ConversationDetail {
+        let result: ConversationDetail = try await get("/api/v1/conversations/\(token)")
+        inboxCache = nil
+        return result
+    }
+
+    func getUnreadCount(tokens: [String]) async throws -> Int {
+        _ = try await listConversations(tokens: tokens)
+        return inboxCache?.conversations.filter(\.hasUnreadReply).count ?? 0
     }
 
     func postReply(
@@ -108,7 +136,9 @@ actor APIClient {
             message: message,
             attachmentIds: (attachmentIds?.isEmpty ?? true) ? nil : attachmentIds
         )
-        return try await post("/api/v1/conversations/\(token)/reply", body: body)
+        let result: Reply = try await post("/api/v1/conversations/\(token)/reply", body: body)
+        inboxCache = nil
+        return result
     }
 
     // MARK: - Release Notes
@@ -137,6 +167,7 @@ actor APIClient {
     private func get<T: Decodable & Sendable>(_ path: String, query: [URLQueryItem] = []) async throws -> T {
         var request = URLRequest(url: makeURL(path, query: query))
         request.setValue("Bearer \(config.apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("swift/1.3.0", forHTTPHeaderField: "X-StorePal-SDK")
         request.setValue(Locale.preferredLanguages.joined(separator: ","), forHTTPHeaderField: "Accept-Language")
 
         return try await perform(request)
@@ -146,6 +177,7 @@ actor APIClient {
         var request = URLRequest(url: makeURL(path))
         request.httpMethod = "POST"
         request.setValue("Bearer \(config.apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("swift/1.3.0", forHTTPHeaderField: "X-StorePal-SDK")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try encoder.encode(body)
 
@@ -162,7 +194,7 @@ actor APIClient {
         }
 
         // Check for specific error codes before decoding
-        if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode >= 400 {
+        if let httpResponse = response as? HTTPURLResponse, !(200...299).contains(httpResponse.statusCode) {
             if let apiResponse = try? decoder.decode(APIResponse<EmptyData>.self, from: data),
                let apiError = apiResponse.error {
                 switch apiError.code {
@@ -192,3 +224,11 @@ actor APIClient {
 }
 
 private struct EmptyData: Decodable, Sendable {}
+
+/// A redirect must never forward an app key or private conversation capabilities.
+private final class RejectRedirects: NSObject, URLSessionTaskDelegate {
+    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,
+                    newRequest request: URLRequest, completionHandler: @escaping @Sendable (URLRequest?) -> Void) {
+        completionHandler(nil)
+    }
+}

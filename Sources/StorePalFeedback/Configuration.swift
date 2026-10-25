@@ -14,8 +14,8 @@ public struct StorePalConfiguration: Sendable {
         baseURL: URL = URL(string: "https://storepal.app")!
     ) {
         precondition(
-            apiKey.hasPrefix("sp_live_") || apiKey.hasPrefix("sp_user_"),
-            "StorePal API key must start with sp_live_ or sp_user_"
+            apiKey.hasPrefix("sp_live_") && apiKey.count > 8 && !apiKey.contains(where: \.isWhitespace),
+            "Use an app-scoped sp_live_ key. Never embed an account-scoped sp_user_ token in an app."
         )
         self.apiKey = apiKey
         self.userEmail = userEmail

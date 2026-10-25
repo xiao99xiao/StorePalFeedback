@@ -8,7 +8,7 @@ Add to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/xiao99xiao/StorePalFeedback.git", from: "1.2.0"),
+    .package(url: "https://github.com/xiao99xiao/StorePalFeedback.git", from: "1.3.0"),
 ]
 ```
 
@@ -25,7 +25,7 @@ Or in Xcode: **File → Add Package Dependencies** → paste the repo URL.
 
 ## Setup
 
-Get an API key from your [StorePal dashboard](https://storepal.app/dashboard) → Integrations tab (requires Pro plan).
+Get an API key from your [StorePal dashboard](https://storepal.app/dashboard) → Integrations tab (available on Free and Pro).
 
 ### iOS · SwiftUI
 
@@ -128,9 +128,19 @@ StorePalWhatsNew.check()
 
 ## Feedback
 
-On iOS, the feedback sheet includes the form, file attachments through Files, and an inbox for reading and replying to conversations. Conversation history uses the saved or prefilled email, supports pagination and pull to refresh, and marks conversations as read when opened. The form requires a name, email, and a message of 10–5,000 characters. Replies accept up to 5,000 characters.
+On iOS, the feedback sheet includes the form, file attachments through Files, and an inbox for reading and replying to conversations. SDK 1.3.0 reads inbox summaries using private conversation tokens saved on this device. Lists and unread checks do not mark threads seen; opening a thread does. Pagination and pull to refresh remain available. The form requires a name, email, and a message of 10–5,000 characters. Replies accept up to 5,000 characters.
 
 On macOS, feedback opens in the existing floating panel. The following window controls and menu commands are macOS only.
+
+### Upgrading to 1.3.0
+
+Existing installations retain their saved conversation tokens. If the old SDK had saved an email after a successful submission, the first inbox load imports that history once while the server compatibility window remains open. Import progress survives interruption and retries; subsequent loads use token-based requests only. New installations never discover conversations from a configured or typed email. The migration temporarily uses the existing email lookup and therefore shares its known privacy risk during the compatibility phase.
+
+After legacy lookup closes, already-held tokens still work. An old installation that upgrades only after the cutoff cannot recover email-only history automatically. Cross-device recovery requires verified identity or a privately saved support link. The SDK never falls back from a failed token lookup to email or an account credential.
+
+On sign-out, dismiss SDK UI and call `StorePalFeedback.clearUserData()` before configuring another account. This removes saved names, email and conversation access, and prevents an in-flight import from restoring old credentials. Restore an independently held private support link with `StorePalFeedback.rememberConversation(token)`. Keep tokens private; never put an account-scoped `sp_user_` token in an app.
+
+The new inbox requires the current StorePal API, including `POST /api/v1/conversations/lookup` (also available on the legacy Supabase base URL). Custom backends must implement that endpoint before upgrading the SDK. Server-side legacy compatibility remains enabled until a separate migration cutoff decision.
 
 ### Configure
 
@@ -182,7 +192,7 @@ The floating panel has two tabs:
 - Category picker (Bug Report, Feature Request, Question, Other)
 - Name and email fields
 - Message text area
-- File attachments (Pro plan) — screenshots, PDFs, or `.log` files
+- File attachments (Free and Pro) — screenshots, PDFs, or `.log` files
 - Auto-collected diagnostic context (OS version, app version/build, app name, locale, hardware model)
 
 **My Conversations**
@@ -192,7 +202,7 @@ The floating panel has two tabs:
 
 ### File Attachments
 
-When your StorePal account is on the Pro plan, users can attach files to their
+On Free and Pro, users can attach files to their
 feedback. The built-in panel exposes an **Attach** button next to the message
 field. Limits:
 
@@ -257,7 +267,7 @@ StorePalWhatsNew.show(version: "2.1.0")
 - macOS 13+
 - iOS / iPadOS 16+ (iOS support starts with SDK 1.2.0)
 - Swift 6.0+
-- StorePal Pro plan (for API key)
+- An app-scoped StorePal API key (Free or Pro)
 
 ## Examples and validation
 

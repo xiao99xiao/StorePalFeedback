@@ -88,6 +88,7 @@ final class FeedbackModel: ObservableObject {
     func submit() async {
         guard canSubmit else { return }
         guard let client else { errorMessage = L10n.string("sdk.not_configured"); return }
+        let generation = store?.generation
         isSubmitting = true
         errorMessage = nil
         defer { isSubmitting = false }
@@ -106,6 +107,7 @@ final class FeedbackModel: ObservableObject {
                 metadata: DeviceMetadata.collect(),
                 attachmentIds: attachments.compactMap(\.uploadedID)
             )
+            guard generation == store?.generation, StorePalFeedback.shared.apiClient === client else { throw CancellationError() }
             store?.savedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
             store?.savedEmail = email.trimmingCharacters(in: .whitespacesAndNewlines)
             store?.saveToken(result.conversationToken)
@@ -124,15 +126,13 @@ final class FeedbackModel: ObservableObject {
 
     func loadConversations(reset: Bool = true) async {
         guard !isLoading else { return }
-        guard let client else { conversationError = L10n.string("sdk.not_configured"); return }
-        let email = store?.resolveEmail(configEmail: StorePalFeedback.shared.config?.userEmail) ?? ""
-        guard !email.isEmpty else { conversations = []; return }
+        guard let client, let store else { conversationError = L10n.string("sdk.not_configured"); return }
         isLoading = true
         conversationError = nil
         defer { isLoading = false }
         do {
             let nextPage = reset ? 1 : page + 1
-            let result = try await client.listConversations(email: email, page: nextPage)
+            let result = try await store.loadInbox(client: client, page: nextPage)
             try Task.checkCancellation()
             conversations = reset ? result.conversations : conversations + result.conversations
             page = result.page
@@ -140,6 +140,15 @@ final class FeedbackModel: ObservableObject {
         } catch is CancellationError {
         } catch {
             conversationError = Self.message(for: error)
+        }
+    }
+
+    func markConversationSeen(_ token: String) {
+        conversations = conversations.map { item in
+            guard item.conversationToken == token else { return item }
+            return ConversationSummary(id: item.id, conversationToken: item.conversationToken, category: item.category,
+                message: item.message, replyCount: item.replyCount, lastReplyAt: item.lastReplyAt,
+                hasUnreadReply: false, createdAt: item.createdAt)
         }
     }
 

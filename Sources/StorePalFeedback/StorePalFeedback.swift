@@ -64,6 +64,27 @@ public final class StorePalFeedback {
 
     // MARK: - Show / Hide
 
+    /// Dismiss SDK UI and call this on sign-out before configuring another account.
+    /// Removes locally held conversation access as well as saved contact details.
+    public static func clearUserData() {
+        shared.store?.clearUserData()
+        if let config = shared.config {
+            shared.config = StorePalConfiguration(apiKey: config.apiKey, baseURL: config.baseURL)
+        }
+        #if os(macOS)
+        shared.windowController?.hidePanel()
+        shared.windowController = nil
+        #endif
+    }
+
+    /// Restore a conversation using its privately held support-link token.
+    @discardableResult
+    public static func rememberConversation(_ token: String) -> Bool {
+        guard UUID(uuidString: token) != nil, let store = shared.store else { return false }
+        store.saveToken(token)
+        return true
+    }
+
     #if os(macOS)
     /// Show the feedback panel. Creates the window on first call.
     public static func show() {

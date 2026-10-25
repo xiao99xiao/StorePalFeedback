@@ -432,6 +432,7 @@ final class FeedbackFormViewController: NSViewController {
         spinner.isHidden = false
         spinner.startAnimation(nil)
         statusLabel.isHidden = true
+        let submissionGeneration = store.generation
 
         Task {
             do {
@@ -456,6 +457,7 @@ final class FeedbackFormViewController: NSViewController {
                     metadata: metadata,
                     attachmentIds: attachmentIds.isEmpty ? nil : attachmentIds
                 )
+                guard store.generation == submissionGeneration else { throw CancellationError() }
                 store.savedName = name
                 store.savedEmail = email
                 store.saveToken(result.conversationToken)
@@ -463,6 +465,8 @@ final class FeedbackFormViewController: NSViewController {
                 spinner.stopAnimation(nil)
                 spinner.isHidden = true
                 showSuccessView()
+            } catch is CancellationError {
+                return
             } catch {
                 spinner.stopAnimation(nil)
                 spinner.isHidden = true

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — iOS diagnostic context
+
+- Add opt-in `StorePalFeedbackContext` metadata and prepared attachments to the native iOS draft.
+- Show prepared logs in the normal removable attachment list; upload only on explicit submission.
+- Preserve SDK environment fields and the API's metadata/attachment limits.
+- Add isolated upload/binding, removal/reset and metadata-budget regressions.
+
 ## 1.2.0 — 2026-10-16
 
 - Support iOS / iPadOS 16+ alongside macOS 13+ in all three package products.

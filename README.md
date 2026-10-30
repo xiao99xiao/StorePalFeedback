@@ -65,6 +65,24 @@ struct SettingsView: View {
 
 For a custom feedback action, use `.feedbackSheet(isPresented: $showFeedback)` or present `StorePalFeedbackView()` in your own sheet. To show a specific release manually, use `.whatsNewSheet(isPresented: $showWhatsNew, version: "1.2.0")`.
 
+On the diagnostic-context development branch (not in the 1.3.0 tag),
+for app-specific iOS support diagnostics, prepare a context locally and pass it
+to `StorePalFeedbackView(context:)`. No request is made until submission:
+
+```swift
+let context = StorePalFeedbackContext(
+    metadata: ["camera_model": "GR III", "camera_firmware": "2.10"],
+    attachments: [.init(fileName: "diagnostics.log", data: sanitizedLogData)],
+    notice: "Camera details and a diagnostic log will be sent. You can remove the log."
+)
+StorePalFeedbackView(context: context)
+```
+
+Prepared files use the same visible, removable attachment list and size/count
+limits as user-selected files. The caller must sanitize diagnostics and explain
+its data use. SDK app/device metadata remains authoritative; custom metadata
+uses the remaining capacity of the server's 20-field, 500-character budget.
+
 ### iOS · UIKit
 
 Configure once in your app's startup flow. Present from a visible controller in the correct scene:

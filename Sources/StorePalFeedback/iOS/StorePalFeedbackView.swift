@@ -7,10 +7,12 @@ private enum FeedbackTab: Hashable { case compose, conversations }
 /// The native iOS feedback form and conversation inbox. Configure StorePal before presenting it.
 public struct StorePalFeedbackView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject private var model = FeedbackModel()
+    @StateObject private var model: FeedbackModel
     @State private var selectedTab = FeedbackTab.compose
 
-    public init() {}
+    public init(context: StorePalFeedbackContext = .init()) {
+        _model = StateObject(wrappedValue: FeedbackModel(context: context))
+    }
 
     public var body: some View {
         TabView(selection: $selectedTab) {
@@ -97,7 +99,10 @@ private struct FeedbackForm: View {
                         Button { importing = true } label: { Label(L10n.attach, systemImage: "paperclip") }
                             .disabled(model.attachments.count >= 3)
                     } footer: {
-                        Text(L10n.attachHint)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(L10n.attachHint)
+                            if let notice = model.contextNotice { Text(notice) }
+                        }
                     }
                     if let error = model.errorMessage {
                         Section { Text(error).foregroundStyle(.red).accessibilityAddTraits(.updatesFrequently) }

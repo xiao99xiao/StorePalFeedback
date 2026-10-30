@@ -1,9 +1,8 @@
-#if os(iOS)
 import Combine
 import Foundation
 import UniformTypeIdentifiers
 
-struct PendingAttachment: Identifiable {
+struct FeedbackDraftAttachment: Identifiable {
     let id = UUID()
     let fileName: String
     let mimeType: String
@@ -18,7 +17,7 @@ final class FeedbackModel: ObservableObject {
     @Published var email: String
     @Published var category: FeedbackCategory
     @Published var message = ""
-    @Published var attachments: [PendingAttachment] = []
+    @Published var attachments: [FeedbackDraftAttachment] = []
     @Published var errorMessage: String?
     @Published private(set) var conversationError: String?
     @Published private(set) var isSubmitting = false
@@ -30,14 +29,18 @@ final class FeedbackModel: ObservableObject {
 
     let client: APIClient?
     private let store: ConversationStore?
+    private let context: StorePalFeedbackContext
+    var contextNotice: String? { context.notice }
 
-    init() {
+    init(context: StorePalFeedbackContext = .init()) {
+        self.context = context
         let sdk = StorePalFeedback.shared
         client = sdk.apiClient
         store = sdk.store
         name = sdk.store?.resolveName(configName: sdk.config?.userName) ?? ""
         email = sdk.store?.resolveEmail(configEmail: sdk.config?.userEmail) ?? ""
         category = StorePalFeedback.defaultCategory.flatMap(FeedbackCategory.init(rawValue:)) ?? .bug
+        addPreparedAttachments(context.attachments)
     }
 
     var canSubmit: Bool {
@@ -45,6 +48,22 @@ final class FeedbackModel: ObservableObject {
             && name.count <= 200 && email.contains("@")
             && message.trimmingCharacters(in: .whitespacesAndNewlines).count >= 10
             && message.utf16.count <= 5000 && !isSubmitting
+    }
+
+    func addPreparedAttachments(_ files: [StorePalFeedbackAttachment]) {
+        for file in files {
+            guard attachments.count < 3 else { errorMessage = String(format: L10n.attachMaxFiles, 3); return }
+            guard !file.data.isEmpty, file.data.count <= 5 * 1024 * 1024,
+                  attachments.reduce(0, { $0 + $1.data.count }) + file.data.count <= 10 * 1024 * 1024 else {
+                errorMessage = L10n.attachTotalTooLarge; return
+            }
+            guard !file.fileName.isEmpty,
+                  !file.fileName.contains(where: { "/\\\r\n\"".contains($0) }),
+                  ["image/png", "image/jpeg", "image/gif", "image/webp", "application/pdf", "text/plain"].contains(file.mimeType) else {
+                errorMessage = L10n.string("form.attach.unsupported"); return
+            }
+            attachments.append(FeedbackDraftAttachment(fileName: file.fileName, mimeType: file.mimeType, data: file.data))
+        }
     }
 
     func addAttachments(_ urls: [URL]) {
@@ -78,7 +97,7 @@ final class FeedbackModel: ObservableObject {
                     errorMessage = L10n.attachTotalTooLarge
                     return
                 }
-                attachments.append(PendingAttachment(fileName: url.lastPathComponent, mimeType: mime, data: data))
+                attachments.append(FeedbackDraftAttachment(fileName: url.lastPathComponent, mimeType: mime, data: data))
             } catch {
                 errorMessage = L10n.attachReadFailed
             }
@@ -104,7 +123,7 @@ final class FeedbackModel: ObservableObject {
                 message: message.trimmingCharacters(in: .whitespacesAndNewlines),
                 name: name.trimmingCharacters(in: .whitespacesAndNewlines),
                 email: email.trimmingCharacters(in: .whitespacesAndNewlines),
-                metadata: DeviceMetadata.collect(),
+                metadata: context.mergedMetadata(device: DeviceMetadata.collect()),
                 attachmentIds: attachments.compactMap(\.uploadedID)
             )
             guard generation == store?.generation, StorePalFeedback.shared.apiClient === client else { throw CancellationError() }
@@ -122,6 +141,7 @@ final class FeedbackModel: ObservableObject {
         attachments = []
         errorMessage = nil
         didSubmit = false
+        addPreparedAttachments(context.attachments)
     }
 
     func loadConversations(reset: Bool = true) async {
@@ -162,4 +182,3 @@ final class FeedbackModel: ObservableObject {
         }
     }
 }
-#endif

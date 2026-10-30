@@ -8,7 +8,7 @@ Add to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/xiao99xiao/StorePalFeedback.git", from: "1.3.0"),
+    .package(url: "https://github.com/xiao99xiao/StorePalFeedback.git", from: "1.3.1"),
 ]
 ```
 
@@ -65,8 +65,7 @@ struct SettingsView: View {
 
 For a custom feedback action, use `.feedbackSheet(isPresented: $showFeedback)` or present `StorePalFeedbackView()` in your own sheet. To show a specific release manually, use `.whatsNewSheet(isPresented: $showWhatsNew, version: "1.2.0")`.
 
-On the diagnostic-context development branch (not in the 1.3.0 tag),
-for app-specific iOS support diagnostics, prepare a context locally and pass it
+In SDK 1.3.1 and later, for app-specific iOS support diagnostics, prepare a context locally and pass it
 to `StorePalFeedbackView(context:)`. No request is made until submission:
 
 ```swift

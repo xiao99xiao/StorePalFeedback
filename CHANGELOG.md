@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — iOS diagnostic context
+## 1.3.1 — 2026-10-31
 
 - Add opt-in `StorePalFeedbackContext` metadata and prepared attachments to the native iOS draft.
 - Show prepared logs in the normal removable attachment list; upload only on explicit submission.

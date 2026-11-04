@@ -18,7 +18,9 @@ private final class MockProtocol: URLProtocol {
             status = 403
             json = #"{"data":null,"error":{"code":"FORBIDDEN","message":"Denied"}}"#
         } else if url.path.hasSuffix("/releases") {
-            #expect(request.value(forHTTPHeaderField: "Accept-Language") != nil)
+            let appLanguages = Bundle.main.preferredLocalizations.filter { $0 != "Base" }
+            #expect(request.value(forHTTPHeaderField: "Accept-Language") == (appLanguages.isEmpty ? Locale.preferredLanguages : appLanguages).joined(separator: ","))
+            #expect(request.value(forHTTPHeaderField: "X-StorePal-SDK") == "swift/1.3.2")
             #expect(URLComponents(url: url, resolvingAgainstBaseURL: false)?.percentEncodedQuery?.contains("+") == false)
             let items = URLComponents(url: url, resolvingAgainstBaseURL: false)!.queryItems!
             #expect(items == [URLQueryItem(name: "version", value: "1.2+ios&test=1")])

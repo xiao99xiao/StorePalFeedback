@@ -56,7 +56,7 @@ public final class StorePalWhatsNew {
         if windowController == nil { windowController = WhatsNewWindowController() }
         let appName = note.appName
             ?? Bundle.main.infoDictionary?["CFBundleDisplayName"] as? String
-            ?? Bundle.main.infoDictionary?["CFBundleName"] as? String ?? "This App"
+            ?? Bundle.main.infoDictionary?["CFBundleName"] as? String ?? StorePalLocalization.string("app.name")
         windowController?.show(version: note.version, releaseNoteURL: url, appName: appName,
                                releaseNotesURL: note.releasesUrl.flatMap(URL.init(string:)))
         return true

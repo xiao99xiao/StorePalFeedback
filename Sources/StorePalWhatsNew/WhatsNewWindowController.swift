@@ -1,6 +1,7 @@
 #if os(macOS)
 import AppKit
 import WebKit
+import StorePalFeedback
 
 /// Displays a "What's New" dialog with app icon, update heading,
 /// and a WKWebView loading the server-rendered release note page.
@@ -34,7 +35,7 @@ final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
             backing: .buffered,
             defer: false
         )
-        window.title = "What's New"
+        window.title = StorePalLocalization.string("release.title")
         window.isMovableByWindowBackground = true
 
         let root = NSView()
@@ -51,7 +52,9 @@ final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
         root.addSubview(iconView)
 
         // --- Right: heading ---
-        let headingLabel = NSTextField(wrappingLabelWithString: "\(appName) has been updated to version \(version).")
+        let headingLabel = NSTextField(wrappingLabelWithString: String(
+            format: StorePalLocalization.string("release.updated"), appName, version
+        ))
         headingLabel.font = .systemFont(ofSize: 13, weight: .semibold)
         headingLabel.textColor = .labelColor
         headingLabel.translatesAutoresizingMaskIntoConstraints = false
@@ -83,7 +86,7 @@ final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
         root.addSubview(bottomBar)
 
         if releaseNotesURL != nil {
-            let linkButton = NSButton(title: "View all release notes", target: self, action: #selector(openReleaseNotes))
+            let linkButton = NSButton(title: StorePalLocalization.string("release.all"), target: self, action: #selector(openReleaseNotes))
             linkButton.bezelStyle = .inline
             linkButton.isBordered = false
             linkButton.contentTintColor = .controlAccentColor
@@ -96,7 +99,7 @@ final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
             ])
         }
 
-        let okButton = NSButton(title: "OK", target: self, action: #selector(dismiss))
+        let okButton = NSButton(title: StorePalLocalization.string("action.ok"), target: self, action: #selector(dismiss))
         okButton.bezelStyle = .rounded
         okButton.keyEquivalent = "\r"
         okButton.translatesAutoresizingMaskIntoConstraints = false

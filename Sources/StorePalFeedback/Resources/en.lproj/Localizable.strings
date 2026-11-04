@@ -60,3 +60,15 @@
 "release.error" = "Could not load release notes. Check your connection and try again.";
 "release.missing" = "No release notes have been published for this version.";
 "release.all" = "View all release notes";
+
+/* macOS menu and release window */
+"menu.feedback" = "Send Feedback...";
+"release.updated" = "%1$@ has been updated to version %2$@.";
+"action.ok" = "OK";
+"app.name" = "This App";
+
+/* Localized API error messages */
+"status.network" = "Could not connect. Check your connection. If you were sending a message, check My Conversations before trying again.";
+"status.rate_limited" = "Too many requests. Please wait a minute and try again.";
+"status.auth" = "Feedback is unavailable. Please contact the app developer.";
+"status.validation" = "Check your name, email, message, and attachment limits.";

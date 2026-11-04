@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.2 — 2026-11-04
+
+- Add complete Traditional Chinese (`zh-Hant`) translations across macOS and iOS, bringing the SDK to nine interface languages.
+- Localize macOS What's New window titles, update headings, action buttons, fallback app names, and the default feedback menu command in all nine SDK languages.
+- Use the localized feedback title when creating the macOS panel.
+- Localize network and API error messages in macOS and iOS instead of exposing English server diagnostics in the built-in UI.
+- Request release notes in the host app's selected language so content and native UI agree when the system prefers a language the host does not support.
+- Add compiled translation, error-message, macOS window, and iOS localization regressions; declare the iOS example's supported languages.
+
 ## 1.3.1 — 2026-10-31
 
 - Add opt-in `StorePalFeedbackContext` metadata and prepared attachments to the native iOS draft.

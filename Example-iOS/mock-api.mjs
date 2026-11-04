@@ -8,8 +8,9 @@ const tokens = {
   older: '44444444-4444-4444-8444-444444444444',
 }
 const date = '2026-10-25T00:00:00Z'
-let stats, threads
+let stats, threads, lastReleaseLanguage
 function reset() {
+  lastReleaseLanguage = ''
   stats = { legacyCalls: 0, lookupCalls: 0, threadReads: 0, replyCalls: 0, submissions: 0, unreadCount: 0 }
   threads = new Map([
     [tokens.legacy, makeThread(tokens.legacy, 'Historical feedback from previous SDK', 'legacy@example.com', true)],
@@ -44,9 +45,11 @@ createServer(async (req, res) => {
     reset(); res.end(JSON.stringify(stats)); return
   }
   if (url.pathname === '/__qa/state') { res.end(JSON.stringify(stats)); return }
+  if (url.pathname === '/__qa/release-language') { res.end(JSON.stringify({ acceptLanguage: lastReleaseLanguage })); return }
   const strict = url.pathname.startsWith('/strict/')
   const path = strict ? url.pathname.slice('/strict'.length) : url.pathname
   if (path.startsWith('/offline')) return error(res, 503, 'UNAVAILABLE', 'Test offline response')
+  if (path.startsWith('/english-errors')) return error(res, 429, 'RATE_LIMITED', 'Server English should never appear in localized UI')
   if (path === '/release-note') {
     res.setHeader('Content-Type', 'text/html')
     res.end('<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{font:17px -apple-system;padding:20px;color:light-dark(#222,#eee);color-scheme:light dark}</style><h2>Built for iPhone and iPad</h2><ul><li>Send feedback with files</li><li>Continue conversations</li><li>Read what changed after an update</li></ul>')
@@ -54,6 +57,7 @@ createServer(async (req, res) => {
   }
   if (req.headers.authorization !== 'Bearer sp_live_ui_test') return error(res, 401, 'INVALID_API_KEY', 'Test key required')
   if (path === '/api/v1/releases') {
+    lastReleaseLanguage = req.headers['accept-language'] || ''
     return data(res, { id: 'release-test', version: url.searchParams.get('version'), content: '- Native feedback on iOS',
       published_at: '2026-10-25', app_name: 'SDK Test App', release_note_url: 'http://127.0.0.1:8766/release-note', releases_url: 'http://127.0.0.1:8766/releases' })
   }

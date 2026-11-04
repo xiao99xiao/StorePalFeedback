@@ -60,3 +60,15 @@
 "release.error" = "无法加载更新说明，请检查网络后重试。";
 "release.missing" = "此版本尚未发布更新说明。";
 "release.all" = "查看全部更新说明";
+
+/* macOS menu and release window */
+"menu.feedback" = "发送反馈…";
+"release.updated" = "%1$@ 已更新至 %2$@ 版本。";
+"action.ok" = "好";
+"app.name" = "此应用";
+
+/* Localized API error messages */
+"status.network" = "无法连接，请检查网络。如果您正在发送消息，请先查看「我的对话」，再决定是否重试。";
+"status.rate_limited" = "请求过于频繁，请稍等一分钟后重试。";
+"status.auth" = "反馈功能暂不可用，请联系应用开发者。";
+"status.validation" = "请检查姓名、邮箱、消息内容及附件限制。";

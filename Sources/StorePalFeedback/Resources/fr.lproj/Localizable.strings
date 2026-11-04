@@ -60,3 +60,15 @@
 "release.error" = "Impossible de charger les nouveautés. Vérifiez votre connexion et réessayez.";
 "release.missing" = "Aucune note de version n’est publiée pour cette version.";
 "release.all" = "Voir toutes les notes de version";
+
+/* macOS menu and release window */
+"menu.feedback" = "Envoyer un commentaire…";
+"release.updated" = "%1$@ a été mise à jour vers la version %2$@.";
+"action.ok" = "OK";
+"app.name" = "Cette app";
+
+/* Localized API error messages */
+"status.network" = "Connexion impossible. Vérifiez votre connexion. Si vous envoyiez un message, consultez vos conversations avant de réessayer.";
+"status.rate_limited" = "Trop de demandes. Patientez une minute et réessayez.";
+"status.auth" = "Les retours sont indisponibles. Contactez le développeur de l’app.";
+"status.validation" = "Vérifiez votre nom, votre e-mail, votre message et les limites des pièces jointes.";

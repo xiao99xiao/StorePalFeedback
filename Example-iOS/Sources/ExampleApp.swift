@@ -25,7 +25,9 @@ struct ExampleApp: App {
             if arguments.contains("--upgrade") {
                 UserDefaults.standard.set("0.9.0", forKey: "com.storepal.lastSeenVersion")
             }
-            let path = arguments.contains("--offline") ? "/offline" : arguments.contains("--strict-server") ? "/strict" : ""
+            let path = arguments.contains("--offline") ? "/offline"
+                : arguments.contains("--english-errors") ? "/english-errors"
+                : arguments.contains("--strict-server") ? "/strict" : ""
             let email = arguments.contains("--configured-email") ? "someone-else@example.com" : nil
             StorePalFeedback.configure(apiKey: apiKey, userEmail: email, baseURL: URL(string: "http://127.0.0.1:8766\(path)")!)
         } else {
@@ -52,6 +54,7 @@ private struct ExampleSettings: View {
                 }
                 Section("Updates") {
                     Button("What’s New") { showWhatsNew = true }
+                        .accessibilityIdentifier("example.showWhatsNew")
                 }
             }
             .navigationTitle("StorePal iOS Example")

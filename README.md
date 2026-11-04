@@ -8,7 +8,7 @@ Add to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/xiao99xiao/StorePalFeedback.git", from: "1.3.1"),
+    .package(url: "https://github.com/xiao99xiao/StorePalFeedback.git", from: "1.3.2"),
 ]
 ```
 
@@ -142,6 +142,24 @@ StorePalWhatsNew.check()
     StorePalFeedback.show()
 }
 ```
+
+## Localization
+
+SDK labels, macOS window titles, and the default feedback menu command follow the
+host app's system-selected language. Built-in translations cover English,
+Simplified and Traditional Chinese, Japanese, Korean, German, French, Spanish, and Brazilian Portuguese.
+
+Declare your app's supported languages in Xcode's project localizations. If your
+app manages translations itself, declare those languages in
+[`CFBundleLocalizations`](https://developer.apple.com/documentation/bundleresources/information-property-list/cfbundlelocalizations)
+instead. A Chinese system preference alone does not make an English-only app
+bundle Chinese. Changing only SwiftUI's `locale` environment does not change
+the language of the SDK's separate AppKit windows.
+
+Titles or button labels you pass explicitly remain your app's responsibility.
+Release note requests use the host app's selected language, with content supplied
+by the language versions published in StorePal separately. SDK error messages use
+the same built-in translations; raw server diagnostics remain available through the API errors.
 
 ## Feedback
 

@@ -23,11 +23,11 @@ public struct FeedbackCommands: Commands {
     /// Creates feedback menu commands.
     ///
     /// - Parameters:
-    ///   - title: Menu item title (default: "Send Feedback...").
+    ///   - title: Menu item title (localized by default).
     ///   - shortcut: Keyboard shortcut key (default: none).
     ///   - modifiers: Keyboard shortcut modifiers.
     public init(
-        title: String = "Send Feedback...",
+        title: String = StorePalLocalization.string("menu.feedback"),
         shortcut: KeyEquivalent? = nil,
         modifiers: EventModifiers = .command
     ) {

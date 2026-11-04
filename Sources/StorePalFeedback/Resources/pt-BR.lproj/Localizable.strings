@@ -60,3 +60,15 @@
 "release.error" = "Não foi possível carregar as novidades. Verifique sua conexão e tente novamente.";
 "release.missing" = "Ainda não há notas publicadas para esta versão.";
 "release.all" = "Ver todas as notas de versão";
+
+/* macOS menu and release window */
+"menu.feedback" = "Enviar feedback…";
+"release.updated" = "%1$@ foi atualizado para a versão %2$@.";
+"action.ok" = "OK";
+"app.name" = "Este app";
+
+/* Localized API error messages */
+"status.network" = "Não foi possível conectar. Verifique sua conexão. Se estava enviando uma mensagem, consulte Minhas conversas antes de tentar novamente.";
+"status.rate_limited" = "Muitas solicitações. Aguarde um minuto e tente novamente.";
+"status.auth" = "O feedback está indisponível. Entre em contato com o desenvolvedor do app.";
+"status.validation" = "Verifique o nome, e-mail, mensagem e os limites dos anexos.";

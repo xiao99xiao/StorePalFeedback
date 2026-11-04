@@ -173,12 +173,6 @@ final class FeedbackModel: ObservableObject {
     }
 
     static func message(for error: any Error) -> String {
-        switch error {
-        case StorePalError.apiError(let detail): detail.message
-        case StorePalError.cooldown: L10n.string("conversation.cooldown")
-        case StorePalError.replyLimit: L10n.string("conversation.reply_limit")
-        case StorePalError.notConfigured: L10n.string("sdk.not_configured")
-        default: L10n.genericError
-        }
+        L10n.errorMessage(error)
     }
 }

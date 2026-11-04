@@ -60,3 +60,15 @@
 "release.error" = "更新情報を読み込めませんでした。接続を確認して再試行してください。";
 "release.missing" = "このバージョンの更新情報はまだ公開されていません。";
 "release.all" = "すべての更新情報を見る";
+
+/* macOS menu and release window */
+"menu.feedback" = "フィードバックを送信…";
+"release.updated" = "%1$@ がバージョン %2$@ に更新されました。";
+"action.ok" = "OK";
+"app.name" = "このアプリ";
+
+/* Localized API error messages */
+"status.network" = "接続できません。ネットワークを確認してください。送信中だった場合は、再試行する前に会話を確認してください。";
+"status.rate_limited" = "リクエストが多すぎます。1 分ほど待ってから再試行してください。";
+"status.auth" = "フィードバックを利用できません。アプリの開発者にお問い合わせください。";
+"status.validation" = "名前、メールアドレス、メッセージ、添付ファイルの制限を確認してください。";

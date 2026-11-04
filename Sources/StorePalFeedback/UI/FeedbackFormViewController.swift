@@ -470,11 +470,7 @@ final class FeedbackFormViewController: NSViewController {
             } catch {
                 spinner.stopAnimation(nil)
                 spinner.isHidden = true
-                let msg = (error as? StorePalError).flatMap { err -> String? in
-                    if case .apiError(let e) = err { return e.message }
-                    return nil
-                } ?? L10n.genericError
-                showStatus(msg, isError: true)
+                showStatus(L10n.errorMessage(error), isError: true)
                 setFormEnabled(true)
             }
         }

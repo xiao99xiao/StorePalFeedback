@@ -1,0 +1,74 @@
+/* Window */
+"window.title" = "傳送回饋";
+
+/* Form labels */
+"form.category" = "類別";
+"form.name" = "姓名";
+"form.name.placeholder" = "請輸入姓名";
+"form.email" = "電子郵件";
+"form.email.placeholder" = "your@email.com";
+"form.message" = "內容";
+"form.message.placeholder" = "請描述您的回饋…";
+"form.submit" = "提交回饋";
+
+/* Categories */
+"category.bug" = "錯誤回報";
+"category.feature" = "功能建議";
+"category.question" = "問題諮詢";
+"category.other" = "其他";
+
+/* Validation */
+"validation.name_email_required" = "請填寫姓名和電子郵件。";
+"validation.message_too_short" = "內容至少需要 10 個字元。";
+
+/* Status */
+"status.error" = "發生錯誤，請再試一次。";
+
+/* Success */
+"success.title" = "感謝您的回饋！";
+"success.subtitle" = "我們已收到您的回饋，如有需要會透過電子郵件與您聯絡。";
+"success.send_another" = "繼續回饋";
+"success.close" = "關閉";
+
+/* Attachments */
+"form.attach" = "加入附件";
+"form.attach.hint" = "圖片、PDF 或 .log — 最多 3 個檔案，每個 5 MB";
+"form.attach.choose" = "選擇";
+"form.attach.remove" = "移除附件";
+"form.attach.max_files" = "最多 %d 個附件。";
+"form.attach.too_large" = "%@ 超過 5 MB 限制。";
+"form.attach.total_too_large" = "附件總大小超過 10 MB。";
+"form.attach.read_failed" = "無法讀取所選檔案。";
+"form.attach.uploading" = "正在上傳附件 %d / %d…";
+
+/* Feedback conversations and release notes */
+"form.attach.unsupported" = "不支援此檔案類型。請選擇圖片、PDF、文字或記錄檔。";
+"form.message.hint" = "10–5,000 個字元。回饋中會附上應用程式版本、系統版本、語言及硬體型號。";
+"conversation.title" = "我的對話";
+"conversation.empty" = "尚無對話，提交回饋後即可在此查看。";
+"conversation.unread" = "有未讀回覆";
+"conversation.cooldown" = "請等待 30 秒後再回覆。";
+"conversation.reply_limit" = "此對話已達到 20 則回覆的上限。";
+"conversation.developer" = "開發者";
+"conversation.you" = "您";
+"conversation.reply_placeholder" = "輸入回覆…";
+"conversation.send" = "傳送回覆";
+"action.retry" = "重試";
+"action.load_more" = "載入更多";
+"sdk.not_configured" = "回饋功能尚未設定，請聯絡應用程式開發者。";
+"release.title" = "更新內容";
+"release.error" = "無法載入更新說明，請檢查網路連線後再試一次。";
+"release.missing" = "此版本尚未發布更新說明。";
+"release.all" = "查看所有更新說明";
+
+/* macOS menu and release window */
+"menu.feedback" = "傳送回饋…";
+"release.updated" = "%1$@ 已更新至 %2$@ 版本。";
+"action.ok" = "好";
+"app.name" = "此應用程式";
+
+/* Localized API error messages */
+"status.network" = "無法連線，請檢查網路。如果您正在傳送訊息，請先查看「我的對話」，再決定是否重試。";
+"status.rate_limited" = "請求過於頻繁，請稍等一分鐘後再試一次。";
+"status.auth" = "回饋功能暫時無法使用，請聯絡應用程式開發者。";
+"status.validation" = "請檢查姓名、電子郵件、訊息內容及附件限制。";

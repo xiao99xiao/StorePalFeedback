@@ -11,7 +11,7 @@ final class FeedbackPanel: NSPanel {
             defer: false
         )
 
-        title = "Feedback"
+        title = L10n.windowTitle
         isMovableByWindowBackground = true
         level = .floating
         hidesOnDeactivate = false

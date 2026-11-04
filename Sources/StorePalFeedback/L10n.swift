@@ -11,6 +11,32 @@ enum L10n {
         NSLocalizedString(key, bundle: .module, comment: "")
     }
 
+    /// Keep server diagnostics available in API errors, but show SDK-owned translations in the UI.
+    static func errorMessage(_ error: any Error) -> String {
+        switch error {
+        case StorePalError.networkError:
+            string("status.network")
+        case StorePalError.cooldown:
+            string("conversation.cooldown")
+        case StorePalError.replyLimit:
+            string("conversation.reply_limit")
+        case StorePalError.notConfigured:
+            string("sdk.not_configured")
+        case StorePalError.apiError(let detail):
+            switch detail.code {
+            case "RATE_LIMITED", "HTTP_429": string("status.rate_limited")
+            case "UNAUTHORIZED", "INVALID_API_KEY", "INVALID_TOKEN", "HTTP_401", "HTTP_403", "FORBIDDEN":
+                string("status.auth")
+            case "VALIDATION_ERROR": string("status.validation")
+            case "COOLDOWN": string("conversation.cooldown")
+            case "REPLY_LIMIT": string("conversation.reply_limit")
+            default: genericError
+            }
+        default:
+            genericError
+        }
+    }
+
     // Window
     static var windowTitle: String { string("window.title") }
 

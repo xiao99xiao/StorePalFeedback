@@ -72,3 +72,6 @@
 "status.rate_limited" = "Trop de demandes. Patientez une minute et réessayez.";
 "status.auth" = "Les retours sont indisponibles. Contactez le développeur de l’app.";
 "status.validation" = "Vérifiez votre nom, votre e-mail, votre message et les limites des pièces jointes.";
+
+/* Native release loading indicator accessibility label */
+"release.loading" = "Chargement des notes de version…";

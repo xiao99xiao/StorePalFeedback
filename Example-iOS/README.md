@@ -24,3 +24,11 @@ xcodebuild -project StorePalExample-iOS.xcodeproj \
 ```
 
 UI tests launch with `--ui-testing`, using `sp_live_ui_test` and `http://127.0.0.1:8766`. `--reset-sdk` clears only the example's SDK state, `--upgrade` seeds a previous version, and `--offline` selects the fixture's failure response. These flags are confined to the example app.
+
+Release-page loading regressions use `--delayed-release-page`,
+`--async-release-page-error`, and `--http-release-page-error`. Their HTML finishes
+navigation before the test releases a local gate; the article or page error then
+appears two seconds later. Tests verify the native progress indicator remains
+visible through that interval, webpage loading/error UI stays hidden, native
+retry starts loading again, and Close works while content is pending. The normal
+fixture remains plain static HTML to cover custom hosted release pages too.

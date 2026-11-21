@@ -8,10 +8,14 @@ const tokens = {
   older: '44444444-4444-4444-8444-444444444444',
 }
 const date = '2026-10-25T00:00:00Z'
-let stats, threads, lastReleaseLanguage
+let stats, threads, lastReleaseLanguage, pageReleased
+const pageGates = new Set()
 function reset() {
+  releasePage()
+  pageReleased = false
   lastReleaseLanguage = ''
-  stats = { legacyCalls: 0, lookupCalls: 0, threadReads: 0, replyCalls: 0, submissions: 0, unreadCount: 0 }
+  stats = { legacyCalls: 0, lookupCalls: 0, threadReads: 0, replyCalls: 0, submissions: 0, unreadCount: 0,
+    pageRequests: 0, pageLoaded: 0, pageReady: 0, pageErrors: 0 }
   threads = new Map([
     [tokens.legacy, makeThread(tokens.legacy, 'Historical feedback from previous SDK', 'legacy@example.com', true)],
     [tokens.older, makeThread(tokens.older, 'Older historical feedback', 'legacy@example.com', false, '2026-10-24T00:00:00Z')],
@@ -30,6 +34,20 @@ function summary(thread) {
 }
 function data(res, value, status = 200) { res.writeHead(status); res.end(JSON.stringify({ data: value, error: null })) }
 function error(res, status, code, message) { res.writeHead(status); res.end(JSON.stringify({ data: null, error: { code, message } })) }
+function releasePage() {
+  pageReleased = true
+  for (const response of pageGates) response.end('{}')
+  pageGates.clear()
+}
+function asynchronousReleaseHTML(fails) {
+  const content = fails
+    ? '<p>Could not load this release note. Please try again.</p>'
+    : '<main class="release-note-embed"><article class="prose"><h2>Delayed release content is ready</h2><p>The native spinner waited for the article.</p></article></main>'
+  return `<!doctype html><html><head><meta name="viewport" content="width=device-width, initial-scale=1">
+<style>body{font:17px -apple-system;padding:20px;color:light-dark(#222,#eee);color-scheme:light dark}.animate-spin{width:24px;height:24px;border:3px solid #999;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}</style></head>
+<body><div id="root"><div class="animate-spin" role="progressbar" aria-label="Fixture webpage spinner"></div></div>
+<script>window.addEventListener('load',async()=>{await fetch('/__qa/page-loaded',{method:'POST'});await fetch('/__qa/page-gate');setTimeout(()=>{document.getElementById('root').innerHTML=${JSON.stringify(content)};fetch('/__qa/${fails ? 'page-error' : 'page-ready'}',{method:'POST'})},2000)});</script></body></html>`
+}
 async function body(req) {
   let raw = ''
   for await (const chunk of req) raw += chunk
@@ -46,12 +64,35 @@ createServer(async (req, res) => {
   }
   if (url.pathname === '/__qa/state') { res.end(JSON.stringify(stats)); return }
   if (url.pathname === '/__qa/release-language') { res.end(JSON.stringify({ acceptLanguage: lastReleaseLanguage })); return }
+  if (url.pathname === '/__qa/release-page' && req.method === 'POST') {
+    releasePage(); res.end(JSON.stringify(stats)); return
+  }
+  if (url.pathname === '/__qa/hold-page' && req.method === 'POST') {
+    pageReleased = false; res.end(JSON.stringify(stats)); return
+  }
+  if (url.pathname === '/__qa/page-gate') {
+    if (pageReleased) res.end('{}')
+    else { pageGates.add(res); res.on('close', () => pageGates.delete(res)) }
+    return
+  }
+  const pageEvent = { '/__qa/page-loaded': 'pageLoaded', '/__qa/page-ready': 'pageReady', '/__qa/page-error': 'pageErrors' }[url.pathname]
+  if (pageEvent && req.method === 'POST') { stats[pageEvent]++; res.end(JSON.stringify(stats)); return }
   const strict = url.pathname.startsWith('/strict/')
-  const path = strict ? url.pathname.slice('/strict'.length) : url.pathname
+  const pageMode = ['/page-delayed', '/page-error', '/page-http'].find(prefix => url.pathname.startsWith(`${prefix}/`))
+  const path = strict ? url.pathname.slice('/strict'.length) : pageMode ? url.pathname.slice(pageMode.length) : url.pathname
   if (path.startsWith('/offline')) return error(res, 503, 'UNAVAILABLE', 'Test offline response')
   if (path.startsWith('/english-errors')) return error(res, 429, 'RATE_LIMITED', 'Server English should never appear in localized UI')
   if (path === '/release-note') {
     res.setHeader('Content-Type', 'text/html')
+    const scenario = url.searchParams.get('scenario')
+    if (scenario) {
+      stats.pageRequests++
+      if (scenario === 'page-http' && stats.pageRequests === 1) {
+        res.writeHead(503); res.end('<!doctype html><div id="root"><p>Temporary release page failure</p></div>'); return
+      }
+      res.end(asynchronousReleaseHTML(scenario === 'page-error' && stats.pageRequests === 1))
+      return
+    }
     res.end('<!doctype html><meta name="viewport" content="width=device-width, initial-scale=1"><style>body{font:17px -apple-system;padding:20px;color:light-dark(#222,#eee);color-scheme:light dark}</style><h2>Built for iPhone and iPad</h2><ul><li>Send feedback with files</li><li>Continue conversations</li><li>Read what changed after an update</li></ul>')
     return
   }
@@ -59,7 +100,7 @@ createServer(async (req, res) => {
   if (path === '/api/v1/releases') {
     lastReleaseLanguage = req.headers['accept-language'] || ''
     return data(res, { id: 'release-test', version: url.searchParams.get('version'), content: '- Native feedback on iOS',
-      published_at: '2026-10-25', app_name: 'SDK Test App', release_note_url: 'http://127.0.0.1:8766/release-note', releases_url: 'http://127.0.0.1:8766/releases' })
+      published_at: '2026-10-25', app_name: 'SDK Test App', release_note_url: `http://127.0.0.1:8766/release-note${pageMode ? `?scenario=${pageMode.slice(1)}` : ''}`, releases_url: 'http://127.0.0.1:8766/releases' })
   }
   if (path === '/api/v1/feedback' && req.method === 'POST') {
     const submitted = await body(req)

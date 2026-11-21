@@ -72,3 +72,6 @@
 "status.rate_limited" = "Zu viele Anfragen. Bitte warte eine Minute und versuche es erneut.";
 "status.auth" = "Feedback ist nicht verfügbar. Bitte kontaktiere den App-Entwickler.";
 "status.validation" = "Prüfe Name, E-Mail, Nachricht und die Anhangslimits.";
+
+/* Native release loading indicator accessibility label */
+"release.loading" = "Versionshinweise werden geladen…";

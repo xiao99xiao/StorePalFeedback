@@ -97,6 +97,108 @@ final class SDKUITests: XCTestCase {
     }
 
     @MainActor
+    func testNativeSpinnerWaitsForAsynchronousReleaseContent() async throws {
+        let app = try await launch(["--delayed-release-page"])
+        app.buttons["example.showWhatsNew"].tap()
+        try await verifyNativePageLoading(app: app, loadedPages: 1)
+        capture("release-native-spinner-after-document-load", app: app)
+        _ = try await fixture("release-page", method: "POST")
+        XCTAssertTrue(app.activityIndicators["storepal.release.loading"].exists, "The article is still delayed after the HTML document finished loading")
+        try await verifyReleaseContentReady(app: app)
+        capture("release-native-spinner-content-ready", app: app)
+        app.buttons["Close"].tap()
+        XCTAssertTrue(app.buttons["Send Feedback"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
+    func testNativeSpinnerCanCloseBeforeReleaseContentArrives() async throws {
+        let app = try await launch(["--delayed-release-page"])
+        app.buttons["example.showWhatsNew"].tap()
+        try await verifyNativePageLoading(app: app, loadedPages: 1)
+        app.buttons["Close"].tap()
+        XCTAssertTrue(app.navigationBars["StorePal iOS Example"].waitForExistence(timeout: 5))
+        XCTAssertFalse(app.activityIndicators["storepal.release.loading"].exists)
+        XCTAssertFalse(app.webViews["storepal.release.content"].isHittable)
+        capture("release-native-spinner-closed-during-load", app: app)
+
+        app.buttons["example.showWhatsNew"].tap()
+        try await verifyNativePageLoading(app: app, loadedPages: 2)
+        _ = try await fixture("release-page", method: "POST")
+        try await verifyReleaseContentReady(app: app)
+        capture("release-native-spinner-reopened-content", app: app)
+        app.buttons["Close"].tap()
+    }
+
+    @MainActor
+    func testAsynchronousReleasePageErrorUsesNativeRetry() async throws {
+        try await verifyPageFailureAndRetry(flag: "--async-release-page-error", asynchronous: true)
+    }
+
+    @MainActor
+    func testHTTPReleasePageErrorUsesNativeRetry() async throws {
+        try await verifyPageFailureAndRetry(flag: "--http-release-page-error", asynchronous: false)
+    }
+
+    @MainActor
+    private func verifyPageFailureAndRetry(flag: String, asynchronous: Bool) async throws {
+        let app = try await launch([flag])
+        app.buttons["example.showWhatsNew"].tap()
+        if asynchronous {
+            try await verifyNativePageLoading(app: app, loadedPages: 1)
+            _ = try await fixture("release-page", method: "POST")
+        }
+        XCTAssertTrue(app.buttons["Try Again"].waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertTrue(app.buttons["Try Again"].isHittable)
+        XCTAssertTrue(app.staticTexts["Could not load release notes. Check your connection and try again."].isHittable)
+        XCTAssertTrue(app.descendants(matching: .any).matching(identifier: "storepal.release.error").firstMatch.exists)
+        XCTAssertFalse(app.activityIndicators["storepal.release.loading"].exists)
+        XCTAssertFalse(app.webViews["storepal.release.content"].isHittable)
+        capture(asynchronous ? "release-native-async-error" : "release-native-http-error", app: app)
+        _ = try await fixture("hold-page", method: "POST")
+        app.buttons["Try Again"].tap()
+        try await verifyNativePageLoading(app: app, loadedPages: asynchronous ? 2 : 1)
+        capture(asynchronous ? "release-native-async-retry-loading" : "release-native-http-retry-loading", app: app)
+        _ = try await fixture("release-page", method: "POST")
+        try await verifyReleaseContentReady(app: app)
+        capture(asynchronous ? "release-native-async-retry-ready" : "release-native-http-retry-ready", app: app)
+        app.buttons["Close"].tap()
+        XCTAssertTrue(app.buttons["Send Feedback"].waitForExistence(timeout: 5))
+    }
+
+    @MainActor
+    private func verifyNativePageLoading(app: XCUIApplication, loadedPages: Int) async throws {
+        XCTAssertTrue(app.staticTexts["SDK Test App"].waitForExistence(timeout: 10), app.debugDescription)
+        try await waitForFixtureValue("pageLoaded", equals: loadedPages)
+        capture("release-page-loading-observation-\(loadedPages)", app: app)
+        XCTAssertTrue(app.activityIndicators["storepal.release.loading"].exists, app.debugDescription)
+        XCTAssertFalse(app.webViews["storepal.release.content"].isHittable, "Keep the webpage's loading UI hidden while the native spinner is visible")
+        // XCTest's remote WebKit DOM reports hidden children as hittable. Verify the
+        // native WebView container above and inspect the captured loading screenshot.
+        let state = try await fixture("state")
+        XCTAssertEqual(state["pageReady"], 0)
+    }
+
+    @MainActor
+    private func verifyReleaseContentReady(app: XCUIApplication) async throws {
+        XCTAssertTrue(app.webViews.staticTexts["Delayed release content is ready"].waitForExistence(timeout: 10), app.debugDescription)
+        XCTAssertTrue(app.webViews["storepal.release.content"].isHittable)
+        XCTAssertFalse(app.activityIndicators["storepal.release.loading"].exists)
+        XCTAssertFalse(app.buttons["Try Again"].exists)
+        let state = try await fixture("state")
+        XCTAssertEqual(state["pageReady"], 1)
+    }
+
+    @MainActor
+    private func waitForFixtureValue(_ key: String, equals expected: Int) async throws {
+        let deadline = Date().addingTimeInterval(10)
+        repeat {
+            if try await fixture("state")[key] == expected { return }
+            try await Task.sleep(for: .milliseconds(100))
+        } while Date() < deadline
+        XCTFail("Fixture \(key) did not reach \(expected)")
+    }
+
+    @MainActor
     func testFeedbackLayout() async throws {
         let app = try await launch()
         app.buttons["Send Feedback"].tap()

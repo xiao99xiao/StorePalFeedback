@@ -20,7 +20,7 @@ private final class MockProtocol: URLProtocol {
         } else if url.path.hasSuffix("/releases") {
             let appLanguages = Bundle.main.preferredLocalizations.filter { $0 != "Base" }
             #expect(request.value(forHTTPHeaderField: "Accept-Language") == (appLanguages.isEmpty ? Locale.preferredLanguages : appLanguages).joined(separator: ","))
-            #expect(request.value(forHTTPHeaderField: "X-StorePal-SDK") == "swift/1.3.2")
+            #expect(request.value(forHTTPHeaderField: "X-StorePal-SDK") == "swift/1.3.3")
             #expect(URLComponents(url: url, resolvingAgainstBaseURL: false)?.percentEncodedQuery?.contains("+") == false)
             let items = URLComponents(url: url, resolvingAgainstBaseURL: false)!.queryItems!
             #expect(items == [URLQueryItem(name: "version", value: "1.2+ios&test=1")])

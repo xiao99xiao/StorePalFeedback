@@ -72,3 +72,6 @@
 "status.rate_limited" = "요청이 너무 많습니다. 1분 후 다시 시도하세요.";
 "status.auth" = "피드백을 사용할 수 없습니다. 앱 개발자에게 문의하세요.";
 "status.validation" = "이름, 이메일, 메시지 및 첨부 파일 제한을 확인하세요.";
+
+/* Native release loading indicator accessibility label */
+"release.loading" = "업데이트 내용을 불러오는 중…";

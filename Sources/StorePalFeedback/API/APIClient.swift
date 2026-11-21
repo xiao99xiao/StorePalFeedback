@@ -167,7 +167,7 @@ actor APIClient {
     private func get<T: Decodable & Sendable>(_ path: String, query: [URLQueryItem] = []) async throws -> T {
         var request = URLRequest(url: makeURL(path, query: query))
         request.setValue("Bearer \(config.apiKey)", forHTTPHeaderField: "Authorization")
-        request.setValue("swift/1.3.2", forHTTPHeaderField: "X-StorePal-SDK")
+        request.setValue("swift/1.3.3", forHTTPHeaderField: "X-StorePal-SDK")
         let appLanguages = Bundle.main.preferredLocalizations.filter { $0 != "Base" }
         let languages = appLanguages.isEmpty ? Locale.preferredLanguages : appLanguages
         request.setValue(languages.joined(separator: ","), forHTTPHeaderField: "Accept-Language")
@@ -179,7 +179,7 @@ actor APIClient {
         var request = URLRequest(url: makeURL(path))
         request.httpMethod = "POST"
         request.setValue("Bearer \(config.apiKey)", forHTTPHeaderField: "Authorization")
-        request.setValue("swift/1.3.2", forHTTPHeaderField: "X-StorePal-SDK")
+        request.setValue("swift/1.3.3", forHTTPHeaderField: "X-StorePal-SDK")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try encoder.encode(body)
 

@@ -10,7 +10,7 @@ public struct StorePalWhatsNewView: View {
     public let note: ReleaseNote
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
-    @State private var webError = false
+    @State private var pageState: ReleasePageLoadMonitor.State = .loading
     @State private var reloadID = UUID()
 
     public init(note: ReleaseNote) { self.note = note }
@@ -24,15 +24,24 @@ public struct StorePalWhatsNewView: View {
                 }
                 .padding(.horizontal)
                 if let url = note.releaseNoteUrl.flatMap(URL.init(string:)), ["https", "http"].contains(url.scheme) {
-                    if webError {
-                        VStack(spacing: 16) {
-                            Text(localized("release.error")).multilineTextAlignment(.center)
-                            Button(localized("action.retry")) { webError = false; reloadID = UUID() }
+                    ZStack {
+                        ReleaseWebView(url: url, state: $pageState, openLink: { openURL($0) }).id(reloadID)
+                            .opacity(pageState == .ready ? 1 : 0)
+                            .accessibilityHidden(pageState != .ready)
+                        if pageState == .loading {
+                            ProgressView().progressViewStyle(.circular)
+                                .accessibilityLabel(localized("release.loading"))
+                                .accessibilityIdentifier("storepal.release.loading")
+                        } else if pageState == .failed {
+                            VStack(spacing: 16) {
+                                Text(localized("release.error")).multilineTextAlignment(.center)
+                                Button(localized("action.retry")) { pageState = .loading; reloadID = UUID() }
+                            }
+                            .padding()
+                            .accessibilityIdentifier("storepal.release.error")
                         }
-                        .padding().frame(maxWidth: .infinity, maxHeight: .infinity)
-                    } else {
-                        ReleaseWebView(url: url, failed: $webError, openLink: { openURL($0) }).id(reloadID)
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
                     ScrollView {
                         Text(.init(note.content)).textSelection(.enabled)
@@ -72,7 +81,11 @@ struct WhatsNewLoaderView: View {
                         if let error {
                             Text(error).multilineTextAlignment(.center)
                             Button(localized("action.retry")) { retry += 1 }
-                        } else { ProgressView() }
+                        } else {
+                            ProgressView().progressViewStyle(.circular)
+                                .accessibilityLabel(localized("release.loading"))
+                                .accessibilityIdentifier("storepal.release.loading")
+                        }
                     }
                     .padding()
                     .navigationTitle(localized("release.title"))
@@ -98,51 +111,40 @@ struct WhatsNewLoaderView: View {
 
 private struct ReleaseWebView: UIViewRepresentable {
     let url: URL
-    @Binding var failed: Bool
+    @Binding var state: ReleasePageLoadMonitor.State
     let openLink: (URL) -> Void
 
-    func makeCoordinator() -> Coordinator { Coordinator(owner: self) }
+    func makeCoordinator() -> ReleasePageLoadMonitor { ReleasePageLoadMonitor() }
 
     func makeUIView(context: Context) -> WKWebView {
-        let configuration = WKWebViewConfiguration()
-        configuration.userContentController.addUserScript(WKUserScript(
+        updateCallbacks(context.coordinator)
+        let fontScript = WKUserScript(
             source: "const style = document.createElement('style'); style.textContent = '.prose { font-size: \(UIFont.preferredFont(forTextStyle: .body).pointSize)px !important; }'; document.head.appendChild(style);",
             injectionTime: .atDocumentEnd, forMainFrameOnly: true
-        ))
-        let view = WKWebView(frame: .zero, configuration: configuration)
+        )
+        let view = context.coordinator.makeWebView(userScripts: [fontScript])
         view.isOpaque = false
         view.backgroundColor = .clear
-        view.navigationDelegate = context.coordinator
-        view.load(URLRequest(url: url))
+        view.accessibilityIdentifier = "storepal.release.content"
+        view.accessibilityElementsHidden = state != .ready
+        view.isHidden = state != .ready
+        context.coordinator.load(URLRequest(url: url))
         return view
     }
 
-    func updateUIView(_ view: WKWebView, context: Context) { context.coordinator.owner = self }
-
-    static func dismantleUIView(_ view: WKWebView, coordinator: Coordinator) {
-        view.stopLoading()
-        view.navigationDelegate = nil
+    func updateUIView(_ view: WKWebView, context: Context) {
+        view.accessibilityElementsHidden = state != .ready
+        view.isHidden = state != .ready
+        updateCallbacks(context.coordinator)
     }
 
-    final class Coordinator: NSObject, WKNavigationDelegate {
-        var owner: ReleaseWebView
-        init(owner: ReleaseWebView) { self.owner = owner }
+    private func updateCallbacks(_ monitor: ReleasePageLoadMonitor) {
+        monitor.onStateChange = { state = $0 }
+        monitor.onOpenLink = openLink
+    }
 
-        func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: any Error) {
-            if (error as NSError).code != NSURLErrorCancelled { owner.failed = true }
-        }
-
-        func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: any Error) {
-            if (error as NSError).code != NSURLErrorCancelled { owner.failed = true }
-        }
-
-        func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction,
-                     decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void) {
-            if navigationAction.navigationType == .linkActivated, let url = navigationAction.request.url {
-                owner.openLink(url)
-                decisionHandler(.cancel)
-            } else { decisionHandler(.allow) }
-        }
+    static func dismantleUIView(_ view: WKWebView, coordinator: ReleasePageLoadMonitor) {
+        coordinator.cancel()
     }
 }
 #endif

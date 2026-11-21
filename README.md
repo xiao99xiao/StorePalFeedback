@@ -8,7 +8,7 @@ Add to your `Package.swift`:
 
 ```swift
 dependencies: [
-    .package(url: "https://github.com/xiao99xiao/StorePalFeedback.git", from: "1.3.2"),
+    .package(url: "https://github.com/xiao99xiao/StorePalFeedback.git", from: "1.3.3"),
 ]
 ```
 
@@ -255,7 +255,19 @@ Unbound uploads are garbage-collected after one hour, so call `submitFeedback`
 
 ## What's New
 
-Show release notes when your app updates to a new version. The prompt displays the hosted release note page in WKWebView: a sheet on iOS and a window on macOS. Links open outside the embedded view. iOS includes loading, retry, missing-note, and web-loading failure states.
+Show release notes when your app updates to a new version. The prompt displays the hosted release note page in WKWebView: a sheet on iOS and a window on macOS. Links open outside the embedded view.
+
+Both platforms show a native circular loading indicator while the hosted page
+fetches and renders the article. The webpage stays hidden until its content is
+ready, including when its initial HTML finishes before its asynchronous request.
+Network, HTTP, page-rendering failures and a 30-second timeout show a localized
+native error with a Retry button. Closing the prompt cancels pending loading work.
+
+Custom backends can keep serving static HTML. An asynchronous custom page can
+declare `data-storepal-release-state="loading"` on an element, then change it to
+`"ready"` after rendering the article or `"error"` if loading fails. The SDK handles
+the standard StorePal hosted page automatically; no host-app integration changes
+are required.
 
 ### How It Works
 

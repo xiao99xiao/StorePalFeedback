@@ -4,12 +4,18 @@ import WebKit
 import StorePalFeedback
 
 /// Displays a "What's New" dialog with app icon, update heading,
-/// and a WKWebView loading the server-rendered release note page.
+/// and a WKWebView whose asynchronous article loading is covered by native controls.
 @MainActor
-final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
+final class WhatsNewWindowController: NSObject, NSWindowDelegate {
 
     private var window: NSWindow?
     private var releaseNotesURL: URL?
+    private var releaseNoteURL: URL?
+    private var pageMonitor: ReleasePageLoadMonitor?
+    private weak var contentContainer: NSView?
+    private weak var webView: WKWebView?
+    private weak var loadingIndicator: NSProgressIndicator?
+    private weak var errorStack: NSStackView?
 
     func show(version: String, releaseNoteURL: URL, appName: String, releaseNotesURL: URL? = nil) {
         if let existing = window, existing.isVisible {
@@ -37,6 +43,7 @@ final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
         )
         window.title = StorePalLocalization.string("release.title")
         window.isMovableByWindowBackground = true
+        window.delegate = self
 
         let root = NSView()
         root.translatesAutoresizingMaskIntoConstraints = false
@@ -61,24 +68,44 @@ final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
         headingLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         root.addSubview(headingLabel)
 
-        // --- WebView ---
-        let config = WKWebViewConfiguration()
-        // Inject CSS: transparent background + disable horizontal scroll
-        let injectCSS = WKUserScript(
-            source: "var s=document.createElement('style');s.textContent=':root,html,body{background-color:transparent!important;overflow-x:hidden!important;margin:0!important;padding:0!important}.release-note-embed>div{padding:0!important}';document.documentElement.appendChild(s);",
-            injectionTime: .atDocumentStart,
-            forMainFrameOnly: true
-        )
-        config.userContentController.addUserScript(injectCSS)
+        // --- Content, native loading indicator, and retry state ---
+        let content = NSView()
+        content.translatesAutoresizingMaskIntoConstraints = false
+        root.addSubview(content)
+        contentContainer = content
+        self.releaseNoteURL = releaseNoteURL
 
-        let webView = WKWebView(frame: .zero, configuration: config)
-        webView.translatesAutoresizingMaskIntoConstraints = false
-        webView.navigationDelegate = self
-        if #available(macOS 13.3, *) { webView.isInspectable = false }
-        webView.setValue(false, forKey: "drawsBackground")
-        webView.underPageBackgroundColor = .clear
-        webView.load(URLRequest(url: releaseNoteURL))
-        root.addSubview(webView)
+        let spinner = NSProgressIndicator()
+        spinner.style = .spinning
+        spinner.isDisplayedWhenStopped = false
+        spinner.identifier = NSUserInterfaceItemIdentifier("storepal.release.loading")
+        spinner.setAccessibilityLabel(StorePalLocalization.string("release.loading"))
+        spinner.translatesAutoresizingMaskIntoConstraints = false
+        content.addSubview(spinner)
+        loadingIndicator = spinner
+
+        let error = NSStackView()
+        error.orientation = .vertical
+        error.alignment = .centerX
+        error.spacing = 12
+        error.identifier = NSUserInterfaceItemIdentifier("storepal.release.error")
+        error.translatesAutoresizingMaskIntoConstraints = false
+        let errorLabel = NSTextField(wrappingLabelWithString: StorePalLocalization.string("release.error"))
+        errorLabel.alignment = .center
+        error.addArrangedSubview(errorLabel)
+        let retryButton = NSButton(title: StorePalLocalization.string("action.retry"), target: self, action: #selector(retryLoading))
+        retryButton.bezelStyle = .rounded
+        error.addArrangedSubview(retryButton)
+        content.addSubview(error)
+        errorStack = error
+        NSLayoutConstraint.activate([
+            spinner.centerXAnchor.constraint(equalTo: content.centerXAnchor),
+            spinner.centerYAnchor.constraint(equalTo: content.centerYAnchor),
+            error.centerXAnchor.constraint(equalTo: content.centerXAnchor),
+            error.centerYAnchor.constraint(equalTo: content.centerYAnchor),
+            error.widthAnchor.constraint(lessThanOrEqualTo: content.widthAnchor),
+        ])
+        loadReleasePage()
 
         // --- Bottom bar ---
         let bottomBar = NSView()
@@ -104,6 +131,7 @@ final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
         okButton.keyEquivalent = "\r"
         okButton.translatesAutoresizingMaskIntoConstraints = false
         bottomBar.addSubview(okButton)
+        window.initialFirstResponder = okButton
         NSLayoutConstraint.activate([
             okButton.trailingAnchor.constraint(equalTo: bottomBar.trailingAnchor),
             okButton.centerYAnchor.constraint(equalTo: bottomBar.centerYAnchor),
@@ -124,10 +152,10 @@ final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
             headingLabel.leadingAnchor.constraint(equalTo: iconView.trailingAnchor, constant: gap),
             headingLabel.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -padding),
 
-            webView.topAnchor.constraint(equalTo: headingLabel.bottomAnchor, constant: 12),
-            webView.leadingAnchor.constraint(equalTo: headingLabel.leadingAnchor),
-            webView.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -padding),
-            webView.bottomAnchor.constraint(equalTo: bottomBar.topAnchor, constant: -8),
+            content.topAnchor.constraint(equalTo: headingLabel.bottomAnchor, constant: 12),
+            content.leadingAnchor.constraint(equalTo: headingLabel.leadingAnchor),
+            content.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -padding),
+            content.bottomAnchor.constraint(equalTo: bottomBar.topAnchor, constant: -8),
 
             bottomBar.leadingAnchor.constraint(equalTo: headingLabel.leadingAnchor),
             bottomBar.trailingAnchor.constraint(equalTo: root.trailingAnchor, constant: -padding),
@@ -141,7 +169,55 @@ final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
 
     @objc private func dismiss() {
         window?.close()
+    }
+
+    func windowWillClose(_ notification: Notification) {
+        guard notification.object as? NSWindow === window else { return }
+        pageMonitor?.cancel()
+        pageMonitor = nil
         window = nil
+    }
+
+    @objc private func retryLoading() { loadReleasePage() }
+
+    private func loadReleasePage() {
+        guard let container = contentContainer, let url = releaseNoteURL else { return }
+        pageMonitor?.cancel()
+        webView?.removeFromSuperview()
+        let monitor = ReleasePageLoadMonitor()
+        let injectCSS = WKUserScript(
+            source: "var s=document.createElement('style');s.textContent=':root,html,body{background-color:transparent!important;overflow-x:hidden!important;margin:0!important;padding:0!important}.release-note-embed>div{padding:0!important}';document.documentElement.appendChild(s);",
+            injectionTime: .atDocumentStart, forMainFrameOnly: true
+        )
+        let view = monitor.makeWebView(userScripts: [injectCSS])
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.identifier = NSUserInterfaceItemIdentifier("storepal.release.content")
+        if #available(macOS 13.3, *) { view.isInspectable = false }
+        view.setValue(false, forKey: "drawsBackground")
+        view.underPageBackgroundColor = .clear
+        container.addSubview(view, positioned: .below, relativeTo: loadingIndicator)
+        NSLayoutConstraint.activate([
+            view.topAnchor.constraint(equalTo: container.topAnchor),
+            view.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            view.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            view.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+        ])
+        webView = view
+        pageMonitor = monitor
+        monitor.onStateChange = { [weak self] in self?.updateContentState($0) }
+        monitor.onOpenLink = { NSWorkspace.shared.open($0) }
+        updateContentState(.loading)
+        monitor.load(URLRequest(url: url))
+    }
+
+    private func updateContentState(_ state: ReleasePageLoadMonitor.State) {
+        webView?.alphaValue = state == .ready ? 1 : 0
+        // AppKit hiding can suspend the page's async fetch/timers. Keep it running
+        // transparently; the observer hides its DOM from accessibility until ready.
+        webView?.setAccessibilityHidden(state != .ready)
+        errorStack?.isHidden = state != .failed
+        if state == .loading { loadingIndicator?.startAnimation(nil) }
+        else { loadingIndicator?.stopAnimation(nil) }
     }
 
     @objc private func openReleaseNotes() {
@@ -149,17 +225,6 @@ final class WhatsNewWindowController: NSObject, WKNavigationDelegate {
         NSWorkspace.shared.open(url)
     }
 
-    // MARK: - WKNavigationDelegate
-
-    // Open links in the default browser, not inside the WebView
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping @MainActor @Sendable (WKNavigationActionPolicy) -> Void) {
-        if navigationAction.navigationType == .linkActivated, let url = navigationAction.request.url {
-            NSWorkspace.shared.open(url)
-            decisionHandler(.cancel)
-        } else {
-            decisionHandler(.allow)
-        }
-    }
 }
 
 #endif

@@ -26,6 +26,9 @@ struct ExampleApp: App {
                 UserDefaults.standard.set("0.9.0", forKey: "com.storepal.lastSeenVersion")
             }
             let path = arguments.contains("--offline") ? "/offline"
+                : arguments.contains("--delayed-release-page") ? "/page-delayed"
+                : arguments.contains("--async-release-page-error") ? "/page-error"
+                : arguments.contains("--http-release-page-error") ? "/page-http"
                 : arguments.contains("--english-errors") ? "/english-errors"
                 : arguments.contains("--strict-server") ? "/strict" : ""
             let email = arguments.contains("--configured-email") ? "someone-else@example.com" : nil

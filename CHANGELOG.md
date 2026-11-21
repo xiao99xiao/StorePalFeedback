@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.3 — 2026-11-21
+
+- Show native AppKit and SwiftUI circular loading indicators while hosted release notes fetch and render their content.
+- Keep the embedded webpage and its loading/error UI hidden until the actual article is ready, even when navigation finishes first.
+- Add native macOS retry/error controls, HTTP and page-failure handling, a 30-second timeout, and cancellation when closing the prompt.
+- Preserve static custom HTML support and provide an explicit readiness marker for custom asynchronous pages.
+- Add WebKit lifecycle tests and delayed-page, failure/retry, and close-during-loading iOS UI regressions.
+
 ## 1.3.2 — 2026-11-04
 
 - Add complete Traditional Chinese (`zh-Hant`) translations across macOS and iOS, bringing the SDK to nine interface languages.

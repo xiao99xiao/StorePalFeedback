@@ -72,3 +72,6 @@
 "status.rate_limited" = "請求過於頻繁，請稍等一分鐘後再試一次。";
 "status.auth" = "回饋功能暫時無法使用，請聯絡應用程式開發者。";
 "status.validation" = "請檢查姓名、電子郵件、訊息內容及附件限制。";
+
+/* Native release loading indicator accessibility label */
+"release.loading" = "正在載入更新說明…";

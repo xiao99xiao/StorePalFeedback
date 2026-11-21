@@ -72,3 +72,6 @@
 "status.rate_limited" = "Demasiadas solicitudes. Espera un minuto y vuelve a intentarlo.";
 "status.auth" = "Los comentarios no están disponibles. Contacta con el desarrollador de la app.";
 "status.validation" = "Comprueba el nombre, correo, mensaje y los límites de los archivos adjuntos.";
+
+/* Native release loading indicator accessibility label */
+"release.loading" = "Cargando notas de versión…";

@@ -72,3 +72,6 @@
 "status.rate_limited" = "请求过于频繁，请稍等一分钟后重试。";
 "status.auth" = "反馈功能暂不可用，请联系应用开发者。";
 "status.validation" = "请检查姓名、邮箱、消息内容及附件限制。";
+
+/* Native release loading indicator accessibility label */
+"release.loading" = "正在加载更新说明…";
